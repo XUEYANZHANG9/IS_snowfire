@@ -4,7 +4,7 @@
 #$ -j y
 #$ -S /bin/bash
 #$ -q default.q
-#$ -N b_rock
+#$ -N swe_sm
 
 
 ##-------------------------------------------------
@@ -18,4 +18,4 @@
 ################ WITHOUT LEAP YEARS
 # python /raid9/gergel/agg_snowpack/basin_aggregated_snowpack_debug_latlonnum_wout_leap_yrs.py $basin $model $scenario 
 
-python /raid9/gergel/agg_snowpack/sum_up_swe_compare_months.py $basin $model $scenario 
+python /raid9/gergel/agg_snowpack/sum_up_swe.py $basin $scenario 
