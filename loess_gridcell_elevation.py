@@ -1,19 +1,16 @@
-### this function modifies swe_elevation_mean 
 ### USES ENSEMBLE AVERAGE OF 10 GCMS
 ### TAKES IN lats, lons, swe, gridcell elevations, basin, scenario
 ### spits out numpy array of lats, lons, elevation and grid cell total SWE  
-def swe_elevation_mean(lats,lons,swe,datess,elev_corr_info,basin,model,scenario):
+def swe_elevation_mean(lats,lons,swe,datess,elev_corr_info,basin,scenario):
     import numpy as np
     import math 
-    from snowpack_functions import unpack_netcdf,get_elev_for_lat_lon, calc_area, get_dist
-    ### start calculating area of grid cells
-    resol = 0.0625
-    cellsize = 0.0625
-    # radius_of_earth = 6371.228 # in km
+    from snowpack_functions import unpack_netcdf_file_var,get_elev_for_lat_lon
     
     ## get historical SWE for model so that historical mean can be determined for mask
-    scenario_for_mean = 'historical'
-    lats_hist,lons_hist,swe_hist,datess_hist = unpack_netcdf(basin,model,scenario_for_mean)
+    direc = '/raid9/gergel/agg_snowpack/goodleap/%s' %basin
+    file_hist = 'SWE_ensavg_%s_%s.nc' %("historical",basin)
+    file = 'SWE_ensavg_%s_%s.nc' %(scenario,basin)
+    lats_hist,lons_hist,swe_hist,datess_hist = unpack_netcdf_file_var(direc,file_hist,"swe")
     
     ## list for latitude and longitude values included in the historical mean mask 
     lats_lons_inc_in_mask = list()
@@ -52,41 +49,40 @@ def swe_elevation_mean(lats,lons,swe,datess,elev_corr_info,basin,model,scenario)
     
     ##### save arrays to files for a multimodel average (and for spatial plots with lats and lons)
     ## define path based on scenario
-    filearrayname = '/raid9/gergel/agg_snowpack/elevations/%s_%s_%s.npz' %(basin,model,scenario)
+    filearrayname = '/raid9/gergel/agg_snowpack/elevations/ensavg_%s_%s.npz' %(basin,scenario)
     np.savez(filearrayname,swe=np.asarray(swe_inc),elevations=np.asarray(elev_inc))
     return (swe_inc,elev_inc)
 
 
-################################################ BEGIN ANALYSIS
+################################################ BEGIN LOESS ANALYSIS ######################################### 
 import numpy as np
 import sys
-from snowpack_functions import unpack_netcdf, import_gridcell_elevation
-# resol = 0.0625
-# cellsize = 0.0625
-# radius_of_earth = 6371.228 # in km
+from snowpack_functions import unpack_netcdf_file_var, import_gridcell_elevation
 ## get command line arguments
 args = sys.argv[1:]
 basin = args[0]
-model = args[1]
-scenario = args[2]
+scenario = args[1]
 soil_file = '/raid9/gergel/agg_snowpack/soil_avail.txt'
 elev_corr_info = import_gridcell_elevation(soil_file)
-lats, lons, swe, datess = unpack_netcdf(basin,model,scenario)
-swe_inc, elev_inc = swe_elevation_mean(lats,lons,swe,datess,elev_corr_info,basin,model,scenario)
+direc = '/raid9/gergel/agg_snowpack/goodleap/%s' %basin
+file = 'SWE_ensavg_%s_%s.nc' %(scenario,basin) 
+lats, lons, swe, datess = unpack_netcdf_file_var(direc,file,"swe")
+swe_inc, elev_inc = swe_elevation_mean(lats,lons,swe,datess,elev_corr_info,basin,scenario)
 
-# In[7]:
+##################### plot ############################
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
+import statsmodels.api as sm
 plt.ion()
-# get_ipython().magic(u'matplotlib inline')
 plt.figure(figsize=(16,4))
 plt.grid()
 plt.xlabel('SWE in m')
 plt.ylabel('elevation in m')
-plt.plot(elev_inc,swe_inc,'.')
-
+plt.plot(elev_inc,swe_inc,'r.')
+'''
+######### single regression ###################
 import numpy as np
 ### do quick linear regression to add a trendline
 coeffs = np.polyfit(elev_inc,swe_inc,1)
@@ -96,11 +92,16 @@ ys = polynomial(elev_inc)
 ### add trendline
 plt.plot(elev_inc,ys,'m')
 plt.title('Average elevation vs mean SWE of gridcell: %s  %s  %s %s' %(scenario,basin,model,polynomial))
+'''
 
+######## LOESS ########################
+loess = sm.nonparametric.lowess(swe_inc,elev_inc) ## possibly include frac value as well, i.e. frac= 1./3
+x_vals = np.linspace(np.min(np.asarray(elev_inc)),np.max(np.asarray(elev_inc)),num=len(np.asarray(elev_inc)))
+plt.plot(x_vals,loess,'b-')
 ## save plot 
 direc = '/raid9/gergel/agg_snowpack/plots/'
 model_spec = 'elevations'
-plotname = 'SWE_%s_%s_%s_%s' % (model_spec,scenario, model, basin)
+plotname = 'SWE_ensavg_%s_%s_%s' % (model_spec,scenario, basin)
 savepath = os.path.join(direc, plotname)
 print ("saving figure to '%s'" % savepath)
 plt.savefig(savepath)
