@@ -75,28 +75,14 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
 import statsmodels.api as sm
-plt.ion()
 plt.figure(figsize=(16,4))
-plt.grid()
 plt.xlabel('SWE in m')
 plt.ylabel('elevation in m')
-plt.plot(elev_inc,swe_inc,'r.')
-'''
-######### single regression ###################
-import numpy as np
-### do quick linear regression to add a trendline
-coeffs = np.polyfit(elev_inc,swe_inc,1)
-polynomial = np.poly1d(coeffs)
-ys = polynomial(elev_inc)
-
-### add trendline
-plt.plot(elev_inc,ys,'m')
-plt.title('Average elevation vs mean SWE of gridcell: %s  %s  %s %s' %(scenario,basin,model,polynomial))
-'''
+plt.plot(swe_inc,elev_inc,'r.')
 
 ######## LOESS ########################
-loess = sm.nonparametric.lowess(swe_inc,elev_inc) ## possibly include frac value as well, i.e. frac= 1./3
-x_vals = np.linspace(np.min(np.asarray(elev_inc)),np.max(np.asarray(elev_inc)),num=len(np.asarray(elev_inc)))
+loess = sm.nonparametric.lowess(elev_inc,swe_inc) ## possibly include frac value as well, i.e. frac= 1./3
+x_vals = np.linspace(np.min(np.asarray(swe_inc)),np.max(np.asarray(swe_inc)),num=len(np.asarray(elev_inc)))
 plt.plot(x_vals,loess,'b-')
 ## save plot 
 direc = '/raid9/gergel/agg_snowpack/plots/'
