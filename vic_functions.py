@@ -8,12 +8,13 @@ arg3 = args[2]
 def set_norun_gridcells(soil_file,lats,lons,new_soil_file_name):
 	### input: numpy array of lats, numpy array of lons (both as floats)
 	import numpy as np
+	import os
 	## load VIC soil parameters text file
 	soil_params = np.loadtxt(soil_file, dtype = 'str', delimiter = ',')
 	## create output file
 	fname = "soil" + new_soil_file_name
-	direc = '/raid9/gergel/vic_sim_obs/soil_files/'
-	new_soil_file = direc + fname
+	direc = '/raid9/gergel/agg_snowpack/snotel_vic/soil_files'
+	new_soil_file = os.path.join(direc,fname)
 	### .split() splits the line up by whitespace!! to convert to float: float(string value)
     	######################### 2nd column: latitude; 3rd column: longitude; 21st column: average elevation of grid cell
 	## set 1s to 0s so that grid cells that aren't in the input array aren't run 
