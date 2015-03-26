@@ -6,7 +6,7 @@ import numpy as np
 import shutil
 import subprocess
 from vic_functions import find_gridcell, four_nearest_neighbors,set_norun_gridcells 
-upper_lat,lower_lat,left_lon,right_lon = sys.argv[1:] ## boundaries of basin 
+basin,upper_lat,lower_lat,left_lon,right_lon = sys.argv[1:] ## boundaries of basin 
 
 ## step two: find all snotel sites that are inside these boundaries (for Western US, so no Canada ones) and add to dictionary, with elevation as value (snotel id as key), add lats and lons to lists too
 snotel_file = '/raid9/gergel/vic_sim_obs/snotel_data/station.info' 
@@ -51,7 +51,7 @@ for latlon in np.arange(len(arr_snotel_lats)):
 	old_global_param_file = "/raid9/gergel/agg_snowpack/snotel_vic/global_files/4.1.2.k"
 	new_global_param_file = "/raid9/gergel/agg_snowpack/snotel_vic/global_files/%s" %("global_file" + arr_snotel_ids[latlon]) 
 	shutil.copyfile(old_global_param_file, new_global_param_file) ## copy global parameter file to new global parameter file path for editing 
-	result_dir = '/raid9/gergel/agg_snowpack/snotel_vic/vic_output/%s' %arr_snotel_ids[latlon] 
+	result_dir = '/raid9/gergel/agg_snowpack/snotel_vic/vic_output/%s/%s' %(basin,arr_snotel_ids[latlon]) 
 	if not os.path.exists(result_dir): ## if results directory doesn't exist, create it
 		os.makedirs(result_dir)
 	result_str = '<RESULT_DIR>'
@@ -65,13 +65,12 @@ for latlon in np.arange(len(arr_snotel_lats)):
 					fout.write(line.replace(soil_str,new_soil_file,1))
 				else: 
 					fout.write(line) 			
-	## step six: run vic
-	import shlex  
+	## step six: run vic 
 	print("now running VIC 4.1.2m for 4 grid cells surrounding Snotel site %s" %arr_snotel_ids[latlon])
 	#subprocess.call(["/raid9/gergel/vic_sim_obs/source_code/VIC-VIC.4.1.2.m/src/vicNl -g", new_global_param_file],shell=True) 
 	subprocess.call("/raid9/gergel/vic_sim_obs/source_code/VIC-VIC.4.1.2.m/src/vicNl -g"+new_global_param_file,shell=True)
 ## step seven: average over all snotel sites, average over all vic runs (using elevation bands) 
-
+###### do this in separate script #########
 ## step eight: plot the two time series 
 
 
