@@ -141,3 +141,17 @@ def avg_4_gridcells(arr,running_code,vicversion,id,colnum,elev):
                 #print(len(avg_vals_res))
                 return(avg_vals_res)
 
+def get_snow_band(fluxfilename,snotel_elev):
+        import numpy as np
+        ### using the lat,lon of gridcell and the elevation of the snotel site, fctn gets the snow band that it is closest to (i.e. snow band 1, snow band 2, etc)
+        text,exspace,lat,lon = fluxfilename.split('_')
+        ## need gridcell number, get from above function: get_gridcell_id(lat,lon), returns gridcell id number 
+        gridcell_num = get_gridcell_id(lat,lon)
+        snow_file = '/raid9/gergel/vic_sim_obs/data_from_Matt/newsnow.txt2'
+        snow = np.loadtxt(snow_file,dtype='str',delimiter = '\t')
+        for eachline in np.arange(len(snow)):
+                if snow[eachline,0].strip() == gridcell_num.strip():
+                        elevs = snow[eachline,2].split()
+                        elevs_floats = np.array(elevs).astype(np.float)
+                        snowband = np.argmin(np.abs(elevs_floats - float(snotel_elev)))
+        return(snowband)
