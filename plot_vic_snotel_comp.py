@@ -5,6 +5,7 @@ import os
 import sys
 from snowpack_functions import lat_lon_adjust,mask_latlon 
 import glob
+from scipy import stats
 import datetime 
 import pandas as pd
 from vic_functions import get_snow_band,find_gridcell
@@ -55,14 +56,13 @@ for site in arr_site_ids:
 
 ## step 3: average over all vic simulations 
 avg_vic = np.mean(np.asarray(vic_swe),axis=0)
+print(avg_vic.shape)
 ## step 4: load snotel data, deal with missing values, average over all snotel data for the basin
 ## full array
 base = datetime.datetime(1987, 1, 1)
 ## end date + 1 (will only produce specified end date - 1)
 end_date = datetime.datetime(2006, 1, 1)
-arr_dates = np.asarray([base + datetime.timedelta(days=i) for i in range(0, (end_date-base).days)])
-arr_dates = arr_dates.reshape(len(arr_dates),1)
-y_arr = np.zeros(len(arr_dates),1) ## array for joining with arr_dates for pd.join
+arr_dates = [base + datetime.timedelta(days=i) for i in range(0, (end_date-base).days)]
 direc_snotel = '/raid9/gergel/vic_sim_obs/snotel_data/US_swe'
 snotel_swe = list()
 for site in arr_site_ids: 
@@ -81,24 +81,18 @@ for site in arr_site_ids:
 				snotel_dates.append(datetime.datetime.strptime(eachday[0],'%Y%m%d'))
 				snotel_site_swe.append(np.float(eachday[1]))
 		arr_snotel_site_swe = np.asarray(snotel_site_swe)
-		arr_snotel_site_dates = np.asarray(snotel_dates)
 		arr_snotel_site_swe[arr_snotel_site_swe==-99]=np.nan ## change -99 values in swe to nan
-		snotel_swe.append(arr_snotel_site_swe) 
-		## deal with missing values using pandas join
-		df_full = pd.concat([pd.Series(arr_dates, pd.Series(y_arr)], axis=1)
-		snotel_series_swe = pd.Series(arr_snotel_site_swe.reshape(len(arr_snotel_site_swe),1))
-		snotel_series_dates = pd.Series(arr_snotel_site_dates.reshape(len(arr_snotel_site_swe),1))
-		df_part = pd.concat([snotel_series_dates,snotel_series_swe],axis=1)
+		#####################snotel_swe.append(arr_snotel_site_swe) 
+		## deal with missing values using pandas merge
+		df_full = pd.DataFrame({'cola':arr_dates})
+		df_part = pd.DataFrame({'cola':snotel_dates,'swe':arr_snotel_site_swe.tolist()}) 
 		## now join dataframes so that missing values are populated with nans
-	 	new_df = df_full.join(df_part,how='left')	
-		print(new_df.shape)
+	 	new_df = df_full.merge(df_part,on=['cola'],how='left')	
+		snotel_swe.append(new_df['swe'].values) 
 ## calculate average of snotel swe 
-#arr_snotel_swe = np.asarray(snotel_swe)
-#print(type(arr_snotel_swe))
-#print(arr_snotel_swe.shape)
-#mdat = np.ma.masked_array(arr_snotel_swe,np.isnan(arr_snotel_swe))
-#avg_snotel = np.mean(mm,axis=0)
-#avg_snotel = np.mean(arr_snotel_swe[~np.isnan(arr_snotel_swe)],axis=0) 
+arr_snotel_swe = np.asarray(snotel_swe)
+avg_swe = stats.nanmean(arr_snotel_swe,axis=0)
+print(avg_swe.shape) 
 ## step 5: plot snotel data and vic simulations 
 
 
