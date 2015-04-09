@@ -91,6 +91,8 @@ def unpack_netcdf_file_var(direc,file,var):
         fh = Dataset(filename, mode='r')
         if (var == "swe"):
                 varinfile = "SWE"
+	elif (var == "TotalSoilMoist"):
+		varinfile = "SoilMoist"
         else:
                 varinfile = "precipitation"
         lons = fh.variables['Longitude'][:]
@@ -314,6 +316,29 @@ def remove_leap_years(datess,swe):
             datess_wout_leap_yrs.append(datess[i])
             index_of_nonleap_yrs.append(i)
     return (swe_wout_leap_yrs,datess_wout_leap_yrs,index_of_nonleap_yrs)
+
+def historical_sum_swe(lat_index,lon_index):
+	'''
+	this function uses the Livneh historical dataset (from 1950-2005) to check whether the historical sum of SWE 
+	in the input grid cell is greater than or equal to 10 mm
+	'''
+	import os
+	import numpy as np
+	direc = '/raid9/gergel/agg_snowpack/goodleap/SWE' 
+	filename = 'livneh_april1swe.nc'
+	from snowpack_functions import unpack_netcdf_file_var
+	lats,lons,swe,datess = unpack_netcdf_file_var(direc,filename,"swe")
+	historical_sum_swe = 0
+	for year in np.arange(len(swe)):
+		historical_sum_swe += swe[year,lat_index,lon_index] 
+	mean_swe = historical_sum_swe/len(swe)
+	if mean_swe >= 10:
+		return True
+	else: 	
+		return False 
+
+	
+
 
 def lat_lon_adjust(lat,lon,basin):
     if (basin == 'california'):
