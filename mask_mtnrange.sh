@@ -16,7 +16,7 @@ timecalc="monday1"
 elif [ "TotalSoilMoist" = "$variable" ]
 then
 timecalc="monday1"
-elif [ "pr" = "$variable" ]
+elif [ "pr" = "$variable" ] || [ "PET_NatVeg" = "$variable" ] || [ "PET_Short" = "$variable" ] || [ "PET_Tall" = "$variable" ] || [ "Transp" = "$variable" ] || [ "Evaporation" = "$variable" ]
 then
 timecalc="monsum"
 else
@@ -36,7 +36,7 @@ fi
 if [ "SWE" = "$variable" ]
 then
 inputfile="/raid3/stumbaugh/IS/CONUS/share/monsumms-vic-gcm10-livneh.20150127/${model}__${scenario}.${timecalc}.${variable}.${years}.nc"
-elif [ "TotalSoilMoist" = "$variable" ]
+elif [ "TotalSoilMoist" = "$variable" ] || [ "PET_NatVeg" = "$variable" ] || [ "PET_Short" = "$variable" ] || [ "PET_Tall" = "$variable" ] || [ "Transp" = "$variable" ] || [ "Evaporation" = "$variable" ]
 then
 inputfile="/raid3/stumbaugh/IS/CONUS/share/monsumms-vic-gcm10-livneh.20150127/${model}__${scenario}.${timecalc}.${variable}.${years}.nc"
 else
@@ -67,8 +67,18 @@ then
 elif [ "$variable" = "TotalSoilMoist" ]
 then
 	cdo selmon,8 $inputfile $tmp
-else
+elif [ "$variable" = "pr" ]
+then
         cdo selmon,11,12,1,2,3 $inputfile $tmp
+elif [ "$variable" = "tasmax" ]
+then
+	cdo selmon,11,12,1,2,3 $inputfile $tmp
+elif [ "$variable" = "tasmin" ]
+then
+	cdo selmon,11,12,1,2,3 $inputfile $tmp
+else
+	echo "the entire year is needed for this variable,so tmp = inputfile" 
+	tmp=$inputfile 
 fi
 
 if [ "$basin" = "california" ]
