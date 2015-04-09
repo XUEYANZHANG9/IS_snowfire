@@ -93,8 +93,10 @@ def unpack_netcdf_file_var(direc,file,var):
                 varinfile = "SWE"
 	elif (var == "TotalSoilMoist"):
 		varinfile = "SoilMoist"
-        else:
-                varinfile = "precipitation"
+        elif (var == "pr"
+		varinfile = "precipitation"
+	else:
+                varinfile = var
         lons = fh.variables['Longitude'][:]
         lats = fh.variables['Latitude'][:]
         var = fh.variables[varinfile][:]
