@@ -93,7 +93,7 @@ def unpack_netcdf_file_var(direc,file,var):
                 varinfile = "SWE"
 	elif (var == "TotalSoilMoist"):
 		varinfile = "SoilMoist"
-        elif (var == "pr"
+        elif (var == "pr"):
 		varinfile = "precipitation"
 	else:
                 varinfile = var
@@ -428,4 +428,35 @@ def mask_latlon(lat,lon,basin):
 
     else:
         return True
+
+def find_idx(v,arrmin,delta):
+        ## return int((v-arrmin)/delta)
+        return int(round((v-arrmin)/delta))
+
+def make_map():
+        m=Basemap(llcrnrlon=-125,llcrnrlat=28,urcrnrlon = -102.5,urcrnrlat=53,projection='cyl',lat_1=33,lat_2=42,lon_0=-110,
+                resolution='c')
+        m.drawcoastlines()
+        m.drawstates()
+        m.drawcountries()
+        m.drawlsmask(land_color='grey',ocean_color='aqua',lakes=True)
+        return(m)
+
+def mesh_gridify(lats,lons,data):
+        from snowpack_functions import find_idx
+        import numpy as np
+        min_lat = np.min(lats)
+        min_lon = np.min(lons)
+        max_lat = np.max(lats)
+        max_lon = np.max(lons)
+        latt = np.arange(min_lat,max_lat+0.125,0.0625)
+        lng = np.arange(min_lon,max_lon+0.125,0.0625)
+        gridz = np.nan*np.empty((len(latt),len(lng)))
+        count = 0
+        for hlat,hlng in zip(lats,lons):
+                gridz[find_idx(hlat,latt[0],0.0625),find_idx(hlng,lng[0],0.0625)] = data[count][0]
+                count += 1
+        masked_gridz = np.ma.masked_where(np.isnan(gridz),gridz)
+        lons_mesh,lats_mesh = np.meshgrid(lng,latt)
+        return(lons_mesh,lats_mesh,masked_gridz)
 
