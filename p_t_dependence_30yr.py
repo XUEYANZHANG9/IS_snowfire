@@ -13,8 +13,6 @@ scenario = args[1]
 if (scenario == "historical"):
 	swe_april = list()
 	precip_tot = list()
-	temp_maximum = list()
-	temp_minimum = list()
 	temp_average = list()
 else:
 	swe_april_2010_2039 = list()
@@ -23,12 +21,6 @@ else:
 	precip_tot_2010_2039 = list()
         precip_tot_2040_2069 = list()
         precip_tot_2070_2099 = list()
-	temp_maximum_2010_2039 = list()
-        temp_maximum_2040_2069 = list()
-        temp_maximum_2070_2099 = list()
-	temp_minimum_2010_2039 = list()
-        temp_minimum_2040_2069 = list()
-        temp_minimum_2070_2099 = list()
 	temp_average_2010_2039 = list()
         temp_average_2040_2069 = list()
         temp_average_2070_2099 = list()
@@ -50,60 +42,67 @@ datess_precip = datess_precip[3:-2]
 ## get historical SWE data to determine which lats/lons to include in analysis
 lats, lons, swe_hist, datess_swe_hist = unpack_netcdf_gen("SWE", basin, "historical")
 
-for i in np.arange(len(swe)): 	## loop over year
-	for j in np.arange(len(lats)): 	## loop over latitude
-		for k in np.arange(len(lons)):	### loop over longitude 
-			### don't calculate area for missing value elements
-			if (math.isnan(swe[i,j,k])) == False: 
-				## REMOVE ADDITIONAL GRID CELLS ACCORDING TO LAT_LON_ADJUST FOR BOXES AND ADJUSTMENTS (LATER MASKS)
-				if_in_box = mask_latlon(lats[j],lons[k],basin)
-				adjust_mask = lat_lon_adjust(lats[j],lons[k],basin)
-				if if_in_box and adjust_mask:
-					historical_sum_swe = 0
-					## CALCULATE MEAN HISTORICAL SWE	
-					for year in np.arange(len(swe_hist)): 
-						historical_sum_swe += swe_hist[year,j,k]
-					mean_swe = historical_sum_swe/len(swe_hist)
-					## EXCLUDE GRID CELLS WITH MEAN HISTORICAL SWE < 10 MM 
-					if (mean_swe >= 10): 
+for j in np.arange(len(lats)): 	## loop over latitude
+	for k in np.arange(len(lons)): 	## loop over longitude
+		### don't calculate area for missing value elements
+		if (math.isnan(swe[0,j,k])) == False: 
+			## REMOVE ADDITIONAL GRID CELLS ACCORDING TO LAT_LON_ADJUST FOR BOXES AND ADJUSTMENTS (LATER MASKS)
+			if_in_box = mask_latlon(lats[j],lons[k],basin)
+			adjust_mask = lat_lon_adjust(lats[j],lons[k],basin)
+			if if_in_box and adjust_mask:
+				historical_sum_swe = 0
+				## CALCULATE MEAN HISTORICAL SWE	
+				for year in np.arange(len(swe_hist)): 
+					historical_sum_swe += swe_hist[year,j,k]
+				mean_swe = historical_sum_swe/len(swe_hist)
+				## EXCLUDE GRID CELLS WITH MEAN HISTORICAL SWE < 10 MM 
+				if (mean_swe >= 10):
+					swe_avg = 0
+					temp_avg = 0
+					swe_avg1 = 0
+					temp_avg1 = 0
+					swe_avg2 = 0
+                                	temp_avg2 = 0
+					swe_avg3 = 0
+                                	temp_avg3 = 0
+					for i in np.arange(len(swe)): 
 						ind = i*5
-						temp_maxx = (temp_max[ind,j,k] + temp_max[ind+1,j,k] + temp_max[ind+2,j,k] + temp_max[ind+3,j,k] + temp_max[ind+4,j,k])/5
-                                                temp_minn = (temp_min[ind,j,k] + temp_min[ind+1,j,k] + temp_min[ind+2,j,k] + temp_min[ind+3,j,k] + temp_min[ind+4,j,k])/5
-						precip_total = precip[ind,j,k] + precip[ind+1,j,k] + precip[ind+2,j,k] +  precip[ind+3,j,k] + precip[ind+4,j,k]
+						tempmax = (temp_max[ind,j,k] + temp_max[ind+1,j,k] + temp_max[ind+2,j,k] + temp_max[ind+3,j,k] + temp_max[ind+4,j,k])/5
+                                        	tempmin = (temp_min[ind,j,k] + temp_min[ind+1,j,k] + temp_min[ind+2,j,k] + temp_min[ind+3,j,k] + temp_min[ind+4,j,k])/5
+						tempavg = (tempmax + tempmin)/2
+						swee = swe[i,j,k]
+						
 						if (scenario == "historical"):
-							swe_april.append(swe[i,j,k])
-							precip_tot.append(precip_total)
-							temp_maximum.append(temp_maxx) 
-							temp_minimum.append(temp_minn)
-							temp_average.append((temp_maxx + temp_minn)/2)
+							swe_avg += swee
+							temp_avg += tempavg
 						else:
 							if datess_swe[i].year >= 2010 and datess_swe[i].year <= 2039:
-								swe_april_2010_2039.append(swe[i,j,k])
-								precip_tot_2010_2039.append(precip_total)
-								temp_maximum_2010_2039.append(temp_maxx)
-								temp_minimum_2010_2039.append(temp_minn)
-								temp_average_2010_2039.append((temp_maxx + temp_minn)/2)
+								swe_avg1 += swee
+								temp_avg1 += tempavg
 							elif datess_swe[i].year >= 2040 and datess_swe[i].year <= 2069:
-								swe_april_2040_2069.append(swe[i,j,k])
-                                                                precip_tot_2040_2069.append(precip_total)
-                                                                temp_maximum_2040_2069.append(temp_maxx)
-                                                                temp_minimum_2040_2069.append(temp_minn)
-                                                                temp_average_2040_2069.append((temp_maxx + temp_minn)/2)
+								swe_avg2 += swee
+                                                                temp_avg2 += tempavg
 							elif datess_swe[i].year >= 2070 and datess_swe[i].year <= 2099:
-								swe_april_2070_2099.append(swe[i,j,k])
-                                                                precip_tot_2070_2099.append(precip_total)
-                                                                temp_maximum_2070_2099.append(temp_maxx)
-                                                                temp_minimum_2070_2099.append(temp_minn)
-                                                                temp_average_2070_2099.append((temp_maxx + temp_minn)/2)
+								swe_avg3 += swee
+                                                                temp_avg3 += tempavg
+					if (scenario == "historical"):
+						swe_april.append(swe_avg/len(swe))
+						temp_average.append(temp_avg/len(swe)) 
+					else: 			
+						swe_april_2010_2039.append(swe_avg1/30) 
+						temp_average_2010_2039.append(temp_avg1/30)
+						swe_april_2040_2069.append(swe_avg2/30)
+                                        	temp_average_2040_2069.append(temp_avg2/30)
+						swe_april_2070_2099.append(swe_avg3/30)
+                                        	temp_average_2070_2099.append(temp_avg3/30)
 						
 
 ## save arrays to files for plotting in a different script
 filearrayname = '/raid9/gergel/agg_snowpack/swe_t_p_reg/proc_data/ensavg_%s_%s.npz' %(basin,scenario)
 if (scenario == "historical"):
-	np.savez(filearrayname,swe=np.asarray(swe_april),precip=np.asarray(precip_tot),temp_max=np.asarray(temp_maximum),temp_min=np.asarray(temp_minimum),temp_avg=np.asarray(temp_average))
+	np.savez(filearrayname,swe=np.asarray(swe_april),precip=np.asarray(precip_tot),temp_avg=np.asarray(temp_average))
 else:
 	np.savez(filearrayname,swe_2010_2039=np.asarray(swe_april_2010_2039),swe_2040_2069=np.asarray(swe_april_2040_2069),swe_2070_2099=np.asarray(swe_april_2070_2099),
-		temp_max_2010_2039=np.asarray(temp_maximum_2010_2039),temp_max_2040_2069=np.asarray(temp_maximum_2040_2069),temp_max_2070_2099=np.asarray(temp_maximum_2070_2099),
-		temp_min_2010_2039=np.asarray(temp_minimum_2010_2039),temp_min_2040_2069=np.asarray(temp_minimum_2040_2069),temp_min_2070_2099=np.asarray(temp_minimum_2070_2099),
 		precip_2010_2039=np.asarray(precip_tot_2010_2039),precip_2040_2069=np.asarray(precip_tot_2040_2069),precip_2070_2099=np.asarray(precip_tot_2070_2099),
 		temp_avg_2010_2039=np.asarray(temp_average_2010_2039),temp_avg_2040_2069=np.asarray(temp_average_2040_2069),temp_avg_2070_2099=np.asarray(temp_average_2070_2099))
+print("saved array to %s" %filearrayname) 
