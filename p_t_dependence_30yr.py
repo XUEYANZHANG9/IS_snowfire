@@ -25,6 +25,8 @@ else:
         temp_average_2040_2069 = list()
         temp_average_2070_2099 = list()
 
+lats_inc = list()
+lons_inc = list()
 ## get data
 lats, lons, swe, datess_swe = unpack_netcdf_gen("SWE", basin, scenario)
 lats, lons, temp_max, datess_temp = unpack_netcdf_gen("tasmax", basin,scenario)
@@ -96,13 +98,15 @@ for j in np.arange(len(lats)): 	## loop over latitude
 						swe_april_2070_2099.append(swe_avg3/30)
                                         	temp_average_2070_2099.append(temp_avg3/30)
 						
-
+					lats_inc.append(lats[j])
+					lons_inc.append(lons[k]) 
 ## save arrays to files for plotting in a different script
 filearrayname = '/raid9/gergel/agg_snowpack/swe_t_p_reg/proc_data/ensavg_%s_%s.npz' %(basin,scenario)
 if (scenario == "historical"):
-	np.savez(filearrayname,swe=np.asarray(swe_april),precip=np.asarray(precip_tot),temp_avg=np.asarray(temp_average))
+	np.savez(filearrayname,swe=np.asarray(swe_april),precip=np.asarray(precip_tot),temp_avg=np.asarray(temp_average),lats=np.asarray(lats_inc),lons=np.asarray(lons_inc))
 else:
 	np.savez(filearrayname,swe_2010_2039=np.asarray(swe_april_2010_2039),swe_2040_2069=np.asarray(swe_april_2040_2069),swe_2070_2099=np.asarray(swe_april_2070_2099),
 		precip_2010_2039=np.asarray(precip_tot_2010_2039),precip_2040_2069=np.asarray(precip_tot_2040_2069),precip_2070_2099=np.asarray(precip_tot_2070_2099),
-		temp_avg_2010_2039=np.asarray(temp_average_2010_2039),temp_avg_2040_2069=np.asarray(temp_average_2040_2069),temp_avg_2070_2099=np.asarray(temp_average_2070_2099))
+		temp_avg_2010_2039=np.asarray(temp_average_2010_2039),temp_avg_2040_2069=np.asarray(temp_average_2040_2069),temp_avg_2070_2099=np.asarray(temp_average_2070_2099),
+		lats=np.asarray(lats_inc),lons=np.asarray(lons_inc))
 print("saved array to %s" %filearrayname) 
