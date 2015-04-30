@@ -23,6 +23,17 @@ pet_agg = list()
 aet_agg = list()
 lats_inc = list()
 lons_inc = list()
+coms = list()
+
+## function to be used to find center of mass
+def com_array(arr):
+	sums = np.ndarray(shape=(len(arr)-2,1), dtype=float) 
+	for el in np.arange(0,len(arr)-2):
+		sums[el] = np.sum(arr[:el+1]) - np.sum(arr[el+2:]) 
+	com_index = np.argmin(np.abs(sums)) + 1  
+	return(com_index) 
+		
+		
 
 direc = '/raid9/gergel/agg_snowpack/goodleap/%s' %basin
 ## filename
@@ -103,8 +114,9 @@ for j in np.arange(len(lats)): ## loop over latitude
 				## group data by year 
 				s = df_half.groupby(lambda x: x.year)
 				## calculate center of mass of the diff of each year (snowmelt) and round its_centers = s['colb'].apply(lambda x: np.round(ndimage.measurements.center_of_mass(np.diff(x))))
-				s_centers = s['colb'].apply(lambda x: np.round(ndimage.measurements.center_of_mass(np.diff(x))))
-				
+				# s_centers = s['colb'].apply(lambda x: np.round(ndimage.measurements.center_of_mass(np.diff(x))))
+				s_centers = s['colb'].apply(lambda x: com_array(x)) 
+				coms.append(s_centers.values.reshape(len(s_centers.values)))  			
 
 ### save arrays to files 
 filearrayname = '/raid9/gergel/agg_snowpack/%s/moistdef_%s.npz' %(scenario,basin) 
