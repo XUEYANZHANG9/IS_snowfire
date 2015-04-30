@@ -10,6 +10,7 @@ from scipy import ndimage
 args = sys.argv[1:]
 basin = args[0]
 scenario = args[1]
+chunk = args[2] 
 direc = '/raid9/gergel/agg_snowpack/goodleap/%s' %basin
 file_swe = 'SWE_ensavg_%s_%s.nc' %(scenario,basin)
 lats,lons,swe,datess = unpack_netcdf_file_var(direc,file_swe,"swe")
@@ -27,9 +28,11 @@ coms = list()
 
 ## function to be used to find center of mass
 def com_array(arr):
+	## NOTE: input array must be an actual array (not a list) 
 	sums = np.ndarray(shape=(len(arr)-2,1), dtype=float) 
 	for el in np.arange(0,len(arr)-2):
 		sums[el] = np.sum(arr[:el+1]) - np.sum(arr[el+2:]) 
+	## include + 1 because of correcting for the right index of the input array rather than the array of sums
 	com_index = np.argmin(np.abs(sums)) + 1  
 	return(com_index) 
 		
@@ -88,7 +91,7 @@ for j in np.arange(len(lats)): ## loop over latitude
                 if (math.isnan(swe[0,j,k])) == False:
 			if_in_box = mask_latlon(lats[j],lons[k],basin)
 			adjust_mask = lat_lon_adjust(lats[j],lons[k],basin)
-			mean_swe = historical_sum_swe(lats[j],lons[k]) 
+			mean_swe = historical_sum_swe(j,k) 
 			## new historical swe function based on livneh instead of vic simulations 
 			if if_in_box and adjust_mask and mean_swe:
 				petsum = 0
@@ -119,7 +122,7 @@ for j in np.arange(len(lats)): ## loop over latitude
 				coms.append(s_centers.values.reshape(len(s_centers.values)))  			
 
 ### save arrays to files 
-filearrayname = '/raid9/gergel/agg_snowpack/%s/moistdef_%s.npz' %(scenario,basin) 
-np.savez(filearrayname,lats=np.asarray(lats_inc),lons=np.asarray(lons_inc),pet=np.asarray(pet_agg),aet=np.asarray(aet_agg))
+filearrayname = '/raid9/gergel/agg_snowpack/%s/moistdef_%s_%s.npz' %(scenario,chunk,basin) 
+np.savez(filearrayname,lats=np.asarray(lats_inc),lons=np.asarray(lons_inc),pet=np.asarray(pet_agg),aet=np.asarray(aet_agg),coms=np.asarray(coms))
 print("finished analysis for %s %s" %(scenario,basin)) 			 
 
