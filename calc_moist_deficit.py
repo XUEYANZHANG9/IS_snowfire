@@ -5,7 +5,7 @@ import sys
 import os
 import math
 from snowpack_functions import lat_lon_adjust,unpack_netcdf_swe_month,mask_latlon,unpack_netcdf_file_var,historical_sum_swe
-from scipy import ndimage 
+import pandas as pd  
 ## get command line arguments 
 args = sys.argv[1:]
 basin = args[0]
@@ -94,14 +94,14 @@ for j in np.arange(len(lats)): ## loop over latitude
 			mean_swe = historical_sum_swe(j,k) 
 			## new historical swe function based on livneh instead of vic simulations 
 			if if_in_box and adjust_mask and mean_swe:
-				petsum = 0
-				aetsum = 0
-				for i in np.arange(len(swe)): ## now loop over year 
+				petsum = list()
+				aetsum = list()
+				for i in np.arange(30): ## now loop over year 
 					ind = i*12
-					petsum += np.sum(np.asarray(petnat[ind:ind+12,j,k])) + np.sum(np.asarray(petshort[ind:ind+12,j,k])) + np.sum(np.asarray(pettall[ind:ind+12,j,k]))
-					aetsum += np.sum(np.asarray(evap[ind:ind+12,j,k])) + np.sum(np.asarray(transp[ind:ind+12,j,k]))
-				pet_agg.append(petsum/len(swe))
-				aet_agg.append(aetsum/len(swe)) 
+					petsum.append(np.sum(np.asarray(petnat[ind:ind+12,j,k])) + np.sum(np.asarray(petshort[ind:ind+12,j,k])) + np.sum(np.asarray(pettall[ind:ind+12,j,k])))
+					aetsum.append(np.sum(np.asarray(evap[ind:ind+12,j,k])) + np.sum(np.asarray(transp[ind:ind+12,j,k])))
+				pet_agg.append(np.asarray(petsum).reshape(len(np.asarray(petsum)),1))
+				aet_agg.append(np.asarray(aetsum).reshape(1,len(np.asarray(aetsum)),1))
 				lats_inc.append(lats[j])
 				lons_inc.append(lons[k])
 
