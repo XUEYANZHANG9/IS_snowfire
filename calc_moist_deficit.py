@@ -79,12 +79,19 @@ lats,lons,swe1,datess_swe1 = unpack_netcdf_file_var(direc_dailyswe,file_dailyswe
 lats,lons,swe2,datess_swe2 = unpack_netcdf_file_var(direc_dailyswe,file_dailyswe2,"swe")
 lats,lons,swe3,datess_swe3 = unpack_netcdf_file_var(direc_dailyswe,file_dailyswe3,"swe")
 
-## adjust data for hydro years 
-petnat = petnat[9:-2,:,:]
-petshort = petshort[9:-2,:,:]
-pettall = pettall[9:-2,:,:]
-evap = evap[9:-2,:,:]
-transp = transp[9:-2,:,:]
+## adjust data for hydro years
+if (scenario == "historical"): 
+	petnat = petnat[237:-74,:,:]
+	petshort = petshort[237:-74,:,:]
+	pettall = pettall[237:-74,:,:]
+	evap = evap[237:-74,:,:]
+	transp = transp[237:-74,:,:]
+else: 
+	petnat = petnat[45:-2,:,:]
+        petshort = petshort[45:-2,:,:]
+        pettall = pettall[45:-2,:,:]
+        evap = evap[45:-2,:,:]
+        transp = transp[45:-2,:,:]
 for j in np.arange(len(lats)): ## loop over latitude
 	for k in np.arange(len(lons)): ## loop over longitude
 		### don't calculate area for missing value elements
@@ -96,14 +103,46 @@ for j in np.arange(len(lats)): ## loop over latitude
 			if if_in_box and adjust_mask and mean_swe:
 				petsum = list()
 				aetsum = list()
-				for i in np.arange(30): ## now loop over year 
-					ind = i*12
-					petsum.append(np.sum(np.asarray(petnat[ind:ind+12,j,k])) + np.sum(np.asarray(petshort[ind:ind+12,j,k])) + np.sum(np.asarray(pettall[ind:ind+12,j,k])))
-					aetsum.append(np.sum(np.asarray(evap[ind:ind+12,j,k])) + np.sum(np.asarray(transp[ind:ind+12,j,k])))
-				pet_agg.append(np.asarray(petsum).reshape(len(np.asarray(petsum)),1))
-				aet_agg.append(np.asarray(aetsum).reshape(1,len(np.asarray(aetsum)),1))
-				lats_inc.append(lats[j])
-				lons_inc.append(lons[k])
+				if (scenario == "historical"):
+					for i in np.arange(30): ## now loop over year 
+						ind = i*12
+						petsum.append(np.sum(np.asarray(petnat[ind:ind+12,j,k])) + np.sum(np.asarray(petshort[ind:ind+12,j,k])) + np.sum(np.asarray(pettall[ind:ind+12,j,k])))
+						aetsum.append(np.sum(np.asarray(evap[ind:ind+12,j,k])) + np.sum(np.asarray(transp[ind:ind+12,j,k])))
+					pet_agg.append(np.asarray(petsum).reshape(len(np.asarray(petsum)),1))
+					aet_agg.append(np.asarray(aetsum).reshape(1,len(np.asarray(aetsum)),1))
+					lats_inc.append(lats[j])
+					lons_inc.append(lons[k])
+				else: 
+					if (chunk == "2010-2039"):
+						for i in np.arange(30):
+							ind = i*12
+                                                	petsum.append(np.sum(np.asarray(petnat[ind:ind+12,j,k])) + np.sum(np.asarray(petshort[ind:ind+12,j,k])) + np.sum(np.asarray(pettall[ind:ind+12,j,k])))
+                                                	aetsum.append(np.sum(np.asarray(evap[ind:ind+12,j,k])) + np.sum(np.asarray(transp[ind:ind+12,j,k])))
+                                        	pet_agg.append(np.asarray(petsum).reshape(len(np.asarray(petsum)),1))
+                                        	aet_agg.append(np.asarray(aetsum).reshape(1,len(np.asarray(aetsum)),1))
+                                        	lats_inc.append(lats[j])
+                                        	lons_inc.append(lons[k])
+					elif (chunk == "2040-2069"):
+						for i in np.arange(30,60):
+							ind = i*12
+                                                	petsum.append(np.sum(np.asarray(petnat[ind:ind+12,j,k])) + np.sum(np.asarray(petshort[ind:ind+12,j,k])) + np.sum(np.asarray(pettall[ind:ind+12,j,k])))
+                                                	aetsum.append(np.sum(np.asarray(evap[ind:ind+12,j,k])) + np.sum(np.asarray(transp[ind:ind+12,j,k])))
+                                        	pet_agg.append(np.asarray(petsum).reshape(len(np.asarray(petsum)),1))
+                                        	aet_agg.append(np.asarray(aetsum).reshape(1,len(np.asarray(aetsum)),1))
+                                        	lats_inc.append(lats[j])
+                                        	lons_inc.append(lons[k])
+					else:
+						for i in np.arange(60,90): 
+							ind = i*12
+                                                	petsum.append(np.sum(np.asarray(petnat[ind:ind+12,j,k])) + np.sum(np.asarray(petshort[ind:ind+12,j,k])) + np.sum(np.asarray(pettall[ind:ind+12,j,k])))
+                                                	aetsum.append(np.sum(np.asarray(evap[ind:ind+12,j,k])) + np.sum(np.asarray(transp[ind:ind+12,j,k])))
+                                        	pet_agg.append(np.asarray(petsum).reshape(len(np.asarray(petsum)),1))
+                                        	aet_agg.append(np.asarray(aetsum).reshape(1,len(np.asarray(aetsum)),1))
+                                        	lats_inc.append(lats[j])
+                                        	lons_inc.append(lons[k])
+
+
+
 
 				###################### NOW FIGURE OUT SNOWMELT DATE AND STATISTICS ####################################
 				## concatenate daily swe and dates values, take diff of swe values 
