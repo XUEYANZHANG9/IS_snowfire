@@ -76,12 +76,10 @@ for i in np.arange(len(swe)):     ### loop over year
                         			## calculate amount of swe and soil moisture in each grid cell: swe (in mm) * area of grid cell; adjust for units
                         			swe_gridcell = cellarea*(swe[i,j,k]*0.000001)
 						if (type == "ensavg"): ## do soil moisture analysis
-							if (scenario == "historical"): 
-								sm_mar_gridcell = cellarea*(sm_mar[i,j,k]*0.000001)
-								sm_aug_gridcell = cellarea*(sm_aug[i,j,k]*0.000001)
-                        				else: ## for rcp 45 and 85, subtract historical soil moisture from future soil moisture for each grid cell 
-								sm_mar_gridcell = (cellarea*(sm_mar[i,j,k]*0.000001)) - (cellarea*(sm_mar_hist[i,j,k]*0.000001))
-								sm_aug_gridcell = (cellarea*(sm_aug[i,j,k]*0.000001)) - (cellarea*(sm_aug_hist[i,j,k]*0.000001))
+							sm_in_storage_march = np.min(np.asarray(sm_mar_hist[:,j,k]))*cellarea*0.000001
+							sm_in_storage_aug = np.min(np.asarray(sm_aug_hist[:,j,k]))*cellarea*0.000001
+							sm_mar_gridcell = (cellarea*(sm_mar[i,j,k]*0.000001)) - sm_in_storage_march
+							sm_aug_gridcell = (cellarea*(sm_aug[i,j,k]*0.000001)) - sm_in_storage_aug
 							## sum up soil moisture
 							sm_mar_gridcell_total += sm_mar_gridcell 
 							sm_aug_gridcell_total += sm_aug_gridcell
