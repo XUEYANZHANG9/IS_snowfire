@@ -4,7 +4,7 @@ import numpy as np
 import sys
 import os
 import math
-from snowpack_functions import lat_lon_adjust,unpack_netcdf_swe_month,mask_latlon,unpack_netcdf_file_var,historical_sum_swe
+from snowpack_functions import import_gridcell_elevation,get_elev_for_lat_lon,lat_lon_adjust,unpack_netcdf_swe_month,mask_latlon,unpack_netcdf_file_var,historical_sum_swe
 import pandas as pd  
 ## get command line arguments 
 args = sys.argv[1:]
@@ -14,6 +14,8 @@ chunk = args[2]
 direc = '/raid9/gergel/agg_snowpack/goodleap/%s' %basin
 file_swe = 'SWE_ensavg_%s_%s.nc' %(scenario,basin)
 lats,lons,swe,datess = unpack_netcdf_file_var(direc,file_swe,"swe")
+soil_file = '/raid9/gergel/agg_snowpack/soil_avail.txt'
+elev_corr_info = import_gridcell_elevation(soil_file) 
 
 ## step 1: load data sources 
 ## PET: all three: NatVeg, Short, Tall
@@ -25,6 +27,7 @@ aet_agg = list()
 lats_inc = list()
 lons_inc = list()
 coms = list()
+elevs = list()
 
 ## function to be used to find center of mass
 def com_array(arr):
@@ -140,7 +143,8 @@ for j in np.arange(len(lats)): ## loop over latitude
                                         	aet_agg.append(np.asarray(aetsum).reshape(1,len(np.asarray(aetsum)),1))
                                         	lats_inc.append(lats[j])
                                         	lons_inc.append(lons[k])
-
+				## get elevation of each grid cell for fire analysis
+				elevs.append(get_elev_for_lat_lon(elev_corr_info,lats[j],lons[k]))
 
 
 
@@ -162,6 +166,6 @@ for j in np.arange(len(lats)): ## loop over latitude
 
 ### save arrays to files 
 filearrayname = '/raid9/gergel/agg_snowpack/%s/moistdef_%s_%s.npz' %(scenario,chunk,basin) 
-np.savez(filearrayname,lats=np.asarray(lats_inc),lons=np.asarray(lons_inc),pet=np.asarray(pet_agg),aet=np.asarray(aet_agg),coms=np.asarray(coms))
+np.savez(filearrayname,lats=np.asarray(lats_inc),lons=np.asarray(lons_inc),elevs=np.asarray(elevs),pet=np.asarray(pet_agg),aet=np.asarray(aet_agg),coms=np.asarray(coms))
 print("finished analysis for %s %s" %(scenario,basin)) 			 
 
