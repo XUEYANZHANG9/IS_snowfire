@@ -85,7 +85,7 @@ def unpack_netcdf_file_var(direc,file,var):
         from netCDF4 import num2date
 
         filename = os.path.join(direc,file)
-        print ("unpacking data from '%s'" % filename)
+        # print ("unpacking data from '%s'" % filename)
 
         ### read in latitude, longitude and swe monthly maximum data
         fh = Dataset(filename, mode='r')
@@ -434,12 +434,13 @@ def find_idx(v,arrmin,delta):
         return int(round((v-arrmin)/delta))
 
 def make_map():
-        m=Basemap(llcrnrlon=-125,llcrnrlat=28,urcrnrlon = -102.5,urcrnrlat=53,projection='cyl',lat_1=33,lat_2=42,lon_0=-110,
+	from mpl_toolkits.basemap import Basemap 
+        m=Basemap(llcrnrlon=-125,llcrnrlat=31,urcrnrlon = -102.5,urcrnrlat=50,projection='cyl',lat_1=33,lat_2=42,lon_0=-110,
                 resolution='c')
         m.drawcoastlines()
         m.drawstates()
         m.drawcountries()
-        m.drawlsmask(land_color='grey',ocean_color='aqua',lakes=True)
+        m.drawlsmask(land_color='grey',ocean_color='lightblue',lakes=True)
         return(m)
 
 def mesh_gridify(lats,lons,data):
