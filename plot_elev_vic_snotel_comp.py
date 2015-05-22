@@ -62,9 +62,16 @@ for site in arr_site_ids: ## loop through snotel sites for mountain range
                                 data = np.loadtxt(pathfile,dtype='float',usecols=(6,),delimiter='\t')
                         else:
                                 data = np.loadtxt(pathfile,dtype='float',usecols=(7,),delimiter='\t')
-			vic_site_swe.append(data[:]) 
-	vic_swe.append(np.mean(np.asarray(vic_site_swe),axis=0)) ## append the average simulated swe for snotel site 
-	vic_swe_elevs.append(elev)  ## append elevation of snotel site 
+			if len(data[:]) > 0:
+				vic_site_swe.append(data[:]) 
+	swe_toappend = np.nanmean(np.asarray(vic_site_swe),axis=0)
+	if type(swe_toappend) != np.float64: 
+		vic_swe.append(np.nanmean(np.asarray(vic_site_swe),axis=0)) ## append the average simulated swe for snotel site 
+		vic_swe_elevs.append(elev)  ## append elevation of snotel site
+	else:  
+		site_ids.remove(site) ## if that site is producing nans, eliminate it from the snotel site list 
+## eliminate any sites that had nans
+arr_site_ids = np.asarray(site_ids) ## make list of site ids into array
 
 ## convert to array 
 vic_swe = np.asarray(vic_swe) ##[number of snotel stations,daily swe] 
@@ -126,29 +133,87 @@ for dayy in np.arange(len(arr_dates)):
 		april_dates.append(arr_dates[dayy])
 april_index = np.asarray(april_index) ## this is an index array
 april_index_array = np.repeat(april_index.reshape(1,len(april_index)),len(vic_swe),axis=0) ## create index array for getting april values from vic and snotel swe 
-vicswe_april = np.take(vic_swe,april_index_array)
-snotelswe_april = np.take(arr_snotel_swe,april_index_array)
+vicswe_april = np.take(vic_swe,april_index,axis=1)
+snotelswe_april = np.take(arr_snotel_swe,april_index,axis=1)
 ## average over time period 
 vicswe_april_avg = np.mean(vicswe_april,axis=1)
-snotelswe_april_avg = np.mean(snotelswe_april,axis=1)  
-######################################################## step 6: plot snotel data and vic simulations ############################################################
+snotelswe_april_avg = np.nanmean(snotelswe_april,axis=1)  
 
-## plot April 1 SWE 
-plt.figure(figsize=(16,4))
-## get April 1 SWE from above vic and snotel arrays
-april_vic = list()
-april_snotel = list()
-for dayy in np.arange(len(arr_dates)): 
-	if arr_dates[dayy].month == 4 and arr_dates[dayy].day == 1: 
-		april_dates.append(arr_dates[dayy])
-		april_vic.append(avg_vic[dayy])
-		april_snotel.append(avg_snotel[dayy])
-plt.plot(april_dates,april_vic,'b-',label='vic')
-plt.plot(april_dates,april_snotel,'r-',label='snotel')
-plt.ylabel('SWE [mm]') 
-plt.title('April 1 SWE in %s' %basin) 
-plt.legend()
-plotname = '%s_april1swe' %basin
+################################################ do elevation binning #########################################################################
+swe_500 = list()
+swe_800 = list()
+swe_1100 = list()
+swe_1400 = list()
+swe_1700 = list()
+swe_2000 = list()
+swe_2300 = list()
+swe_2600 = list()
+swe_2900 = list()
+swe_3200 = list()
+swe_3500 = list()
+swe_3800 = list()
+
+elvs = [500,800,1100,1400,1700,2000,2300,2600,2900,3200,3500,3800]
+swees = [swe_500,swe_800,swe_1100,swe_1400,swe_1700,swe_2000,swe_2300, swe_2600, swe_2900, swe_3200, swe_3500, swe_3800] 
+for elv,vicswe,snotelswe in zip(vic_swe_elevs,vicswe_april_avg,snotelswe_april_avg):
+	ind = np.argmin(np.abs((np.asarray(elvs) - np.float(elv))))
+	swees[ind].append([vicswe,snotelswe]) 
+######################################################## step 6: plot snotel data and vic simulations ############################################################
+fig = plt.figure(figsize=(18,10)) 
+ax = fig.add_subplot(1,5,1) ## need to deal with this plotting number later
+## swe on x axis, elevation on y axis with 40 m offset for snotel and vic 
+lw = 2.0
+count1 = 0
+for swe in swees: 
+	if len(swe) > 0:  
+		swearr = np.asarray(swe) 
+		sim = swearr[:,0]
+		obs = swearr[:,1] 
+		simobs = [sim,obs] 
+		colours = ['r','g'] 
+		count = 0
+		for so in simobs: 
+			meanswe = np.mean(so)
+			print(so) 
+			minswe = np.min(so)
+			maxswe = np.max(so)
+			swe10 = np.percentile(so,10)
+			swe90 = np.percentile(so,90) 
+			## plot
+			if (count == 0): ## for vic, plot actual elevation 
+				elevmet = elvs[count1]
+			else: ## for snotel, plot actual elevation with 40 m offset
+				elevmet = elvs[count1] - 40
+			xmin = np.arange(minswe,swe10,1)
+			ax.plot(xmin,np.ones(len(xmin))*elevmet,color=colours[count],linestyle='--',linewidth=lw)
+			xmax = np.arange(swe90,maxswe,1)
+	                ax.plot(xmax,np.ones(len(xmax))*elevmet,color=colours[count],linestyle='--',linewidth=lw)
+                	## 10-90 range
+                	xmid = np.arange(swe10,swe90,1)
+                	ax.plot(xmid,np.ones(len(xmid))*elevmet,color=colours[count],linestyle='-',linewidth=lw)
+                	## mean
+                	ax.plot(meanswe,elevmet,'o',color=colours[count])
+                	## 10th
+                	ax.plot(swe10,elevmet,'s',color=colours[count])
+                	## 90th
+                	ax.plot(swe90,elevmet,'s',color=colours[count])
+			count += 1
+	count1 += 1
+
+import matplotlib.patches as mpatches
+
+red_patch = mpatches.Patch(color='red', label='Simulated')
+green_patch = mpatches.Patch(color='green', label='Observed')
+
+ax.legend(handles=[red_patch,green_patch],bbox_to_anchor=(1.05, 1), loc=2)
+# ax.legend(handles=[red_patch,green_patch])
+
+plt.ylabel('Elevation [m]') 
+plt.xlabel('SWE [mm]') 
+#plt.title('April 1 SWE in %s' %basin) 
+#plt.legend()
+plot_direc = '/raid9/gergel/agg_snowpack/snotel_vic/plots'
+plotname = 'binned_%s_april1swe' %basin
 savepath = os.path.join(plot_direc,plotname)
 print("saving figure to '%s'" %savepath)
 plt.savefig(savepath) 
