@@ -84,21 +84,21 @@ fi
 if [ "$basin" = "california" ]
 then
         echo "now processing $inputfile with $basin mask"
-        cdo masklonlatbox,-122.5,-118,41.5,35.5 $tmp $outputfile
+        cdo masklonlatbox,-122.5,-117,41.5,34.5 $tmp $outputfile
 elif [ "$basin" = "northernrockies" ]
 then
         echo "now processing $inputfile with $basin mask"
-        cdo masklonlatbox,-117.0,-107.5,49.0,42.0 $tmp $outputfile
+        cdo masklonlatbox,-119.5,-107.5,49.0,42.37 $tmp $outputfile
 elif [ "$basin" = "southernrockies" ]
 then
         echo "now processing $inputfile with $basin mask"
-	cdo masklonlatbox,-112.5,-105.5,42.37,35.0 $tmp $outputfile
+	cdo masklonlatbox,-113.0,-104.0,42.37,35.0 $tmp $outputfile
 elif [ "$basin" = "whites" ]
 then
         echo "now processing $inputfile with $basin mask"
-        cdo masklonlatbox,-111,-109,36,32 $tmp $outputfile
+        cdo masklonlatbox,-111,-108,36,32 $tmp $outputfile
 else [ "$basin" = "cascades" ]
         echo "now processing $inputfile with $basin mask"
-        cdo masklonlatbox,-123.25,-120,49.0,41.5 $tmp $outputfile
+        cdo masklonlatbox,-123.25,-119.5,49.0,41.5 $tmp $outputfile
 fi
  
