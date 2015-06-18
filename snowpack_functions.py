@@ -435,7 +435,7 @@ def find_idx(v,arrmin,delta):
 
 def make_map():
 	from mpl_toolkits.basemap import Basemap 
-        m=Basemap(llcrnrlon=-125,llcrnrlat=31,urcrnrlon = -102.5,urcrnrlat=50,projection='cyl',lat_1=33,lat_2=42,lon_0=-110,
+        m=Basemap(llcrnrlon=-125,llcrnrlat=31,urcrnrlon = -104.5,urcrnrlat=50,projection='cyl',lat_1=33,lat_2=42,lon_0=-110,
                 resolution='c')
         m.drawcoastlines()
         m.drawstates()
@@ -461,3 +461,46 @@ def mesh_gridify(lats,lons,data):
         lons_mesh,lats_mesh = np.meshgrid(lng,latt)
         return(lons_mesh,lats_mesh,masked_gridz)
 
+def mask_out_other_mtns(lat,lon):
+	if lon < -122 and lat < 40.7: 
+        	return False 
+    	elif lon < -123:
+        	return False
+    	elif lon > -119.75 and lon < -114 and lat > 39 and lat < 43.1:
+        	return False
+    	elif lon > -117.6 and lon < -114 and lat > 30 and lat < 39:
+        	return False
+    	elif lat > 31.5 and lat < 37 and lon > -114 and lon < -111:
+        	return False
+    	## oregon
+    	elif lat < 46 and lat > 43 and lon > -121 and lon < -117:
+        	return False
+    	## utah
+    	elif lat > 37 and lat < 39 and lon > -114 and lon < -109: 
+        	return False
+    	elif lat > 39 and lat < 42 and lon > -114 and lat < -112:
+        	return False
+    	elif lat < 35 and lon < -117:
+        	return False
+    	elif lat > 43 and lat < 44 and lon > -117 and lon < -116: 
+        	return False
+    	elif lat > 42 and lat < 49 and lon > -108 and lon < -103:
+        	return False
+    	elif lat < 33: 
+        	return False
+    	elif lat < 35.5 and lon > -108.75:
+        	return False
+    	elif lat > 45 and lon > -109:
+        	return False
+    	elif lat > 48 and lon > -110:
+        	return False
+    	elif lat > 35 and lat < 37 and lon < -108 and lon > -111: 
+        	return False
+    	elif lon > -114 and lon < -113 and lat > 37 and lat < 43: 
+        	return False
+    	elif lat > 45 and lat < 47 and lon > -118.25 and lon < -117:
+        	return False
+    	elif lat > 38.5 and lon > -104.5:
+        	return False
+    	else:
+        	return True 
