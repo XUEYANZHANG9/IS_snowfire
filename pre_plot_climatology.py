@@ -1,7 +1,7 @@
 
 # In[104]:
 
-from snowpack_functions import unpack_netcdf_file_var,lat_lon_adjust,mask_latlon,historical_sum_swe
+from snowpack_functions import mask_out_other_mtns,unpack_netcdf_file_var,historical_sum_swe
 import numpy as np
 import os
 import math 
@@ -30,10 +30,11 @@ lons_inc = list()
 for j in np.arange(len(lats)): ## loop over latitude
 	for k in np.arange(len(lons)): ## loop over longitude
         	if (math.isnan(var[0,j,k])) == False: 
-                	if_in_box = mask_latlon(lats[j],lons[k],basin)
-                        adjust_mask = lat_lon_adjust(lats[j],lons[k],basin)
-                        mean_swe = historical_sum_swe(j,k)
-                        if if_in_box and adjust_mask and mean_swe: ## then use data and get average for each grid cell 
+                	#if_in_box = mask_latlon(lats[j],lons[k],basin)
+                        #adjust_mask = lat_lon_adjust(lats[j],lons[k],basin)
+                        if_in_box = mask_out_other_mtns(lats[j],lons[k])
+			mean_swe = historical_sum_swe(j,k)
+                        if if_in_box and mean_swe: ## then use data and get average for each grid cell 
                             var_year = 0
 			    length = 30
                             for i in np.arange(30): 
