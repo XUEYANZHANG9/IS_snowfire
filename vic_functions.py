@@ -58,6 +58,15 @@ def four_nearest_neighbors(lat,lon):
 	lower_left = np.asarray([lat - dg, lon - dg])
 	return(upper_right,lower_right,upper_left,lower_left) # first number in array is lat, second is lon
 
+def all_nearest_neighbors(lat,lon): 
+	## function produces arrays of lats and lons for nine grid cells surrounding snotel site: the grid cell it's located in plus all adjacent ones 
+	import numpy as np
+	dg = 0.0625
+	lats_array = np.asarray([ lat + dg, lat + dg, lat - dg, lat - dg, lat + dg, lat, lat - dg, lat, lat ]).reshape(9,1) 
+	lons_array = np.asarray([ lon + dg, lon - dg, lon + dg, lon - dg, lon, lon - dg, lon, lon + dg, lon ]).reshape(9,1)  
+	## upper right, upper left, lower right, lower left, top, left, bottom, right, gridcell 
+	return(lats_array,lons_array) 
+
 def find_gridcell(lat_snotel,lon_snotel):
 	import numpy as np
 	import math
