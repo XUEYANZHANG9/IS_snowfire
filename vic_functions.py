@@ -154,4 +154,15 @@ def get_snow_band(fluxfilename,snotel_elev):
                         elevs = snow[eachline,2].split()
                         elevs_floats = np.array(elevs).astype(np.float)
                         snowband = np.argmin(np.abs(elevs_floats - float(snotel_elev)))
-        return(snowband)
+        return(snowband,lat,lon)
+
+def get_snotel_elevation(site_id):
+        snotel_file = '/raid9/gergel/vic_sim_obs/snotel_data/station.info'
+        snotel = np.loadtxt(snotel_file,dtype='str',delimiter = '\t') ## data is [ latitude longitude elevation snotel_id name_of_site] 
+        for site in np.arange(len(snotel)):
+                line = snotel[site].split()
+                if line[3] == site_id:
+                        elev = line[2]
+                        lat = line[0]
+                        lon = line[1]
+        return(elev,lat,lon)
