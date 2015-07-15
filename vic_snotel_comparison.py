@@ -5,7 +5,7 @@ import os
 import numpy as np
 import shutil
 import subprocess
-from vic_functions import find_gridcell, four_nearest_neighbors,set_norun_gridcells 
+from vic_functions import find_gridcell, four_nearest_neighbors,set_norun_gridcells,all_nearest_neighbors 
 basin,upper_lat,lower_lat,left_lon,right_lon = sys.argv[1:] ## boundaries of basin 
 
 ## step two: find all snotel sites that are inside these boundaries (for Western US, so no Canada ones) and add to dictionary, with elevation as value (snotel id as key), add lats and lons to lists too
@@ -29,8 +29,12 @@ arr_snotel_lons = np.asarray(snotel_lons)
 arr_snotel_ids = np.asarray(snotel_ids)
 for latlon in np.arange(len(arr_snotel_lats)):
 	lat_gridcell,lon_gridcell = find_gridcell(float(arr_snotel_lats[latlon]),float(arr_snotel_lons[latlon]))
-	u_r,l_r,u_l,l_l = four_nearest_neighbors(lat_gridcell,lon_gridcell)
+	# u_r,l_r,u_l,l_l = four_nearest_neighbors(lat_gridcell,lon_gridcell)
+	###
+	lats_array,lons_array = all_nearest_neighbors(lat_gridcell,lon_gridcell) 
+	###
 	print("now analyzing the snotel site at %s %s" %(lat_gridcell,lon_gridcell))
+	'''
 	lats_array = np.ndarray(shape=(4,1), dtype=float)
 	lons_array = np.ndarray(shape=(4,1), dtype=float)
 	lats_array[0,0] = u_r[0]
@@ -41,6 +45,7 @@ for latlon in np.arange(len(arr_snotel_lats)):
 	lons_array[1,0] = l_r[1]
 	lons_array[2,0] = u_l[1]
 	lons_array[3,0] = l_l[1]
+	'''
 	new_soil_suffix = arr_snotel_ids[latlon]
 	soil_name = "soil" + new_soil_suffix 
 	direc = '/raid9/gergel/agg_snowpack/snotel_vic/soil_files'
