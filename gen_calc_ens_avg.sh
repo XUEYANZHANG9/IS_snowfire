@@ -43,9 +43,9 @@ do
 			#### and which scenario it is
 			if [ "historical" = "${arr_sc[$scen]}" ]
 			then
-			years="1950-2005"
+			years="1950_2005"
 			else
-			years="2006-2099"
+			years="2006_2099"
 			fi
 
 			for i in 0 1 2 3 4 5 6 7 8 9
