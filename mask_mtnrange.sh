@@ -23,6 +23,13 @@ else
 timecalc="monmean"
 fi
 
+if [ "CCSM4" = "$model" ] 
+then
+modnum="r6i1p1"
+else
+modnum="r1i1p1"
+fi 
+
 #### and which scenario it is
 if [ "historical" = "$scenario" ]
 then
@@ -37,7 +44,7 @@ if [ "pr" = "$variable" ] || [ "tasmin" = "$variable" ] || [ "tasmax" = "$variab
 then
 inputfile="/raid9/gergel/agg_snowpack/is_summ/cat.WUS.summ.diana.tight/${model}_${scenario}_${variable}.${timecalc}.nc" 
 else
-inputfile="/raid9/gergel/agg_snowpack/is_summ/${model}_r1i1p1_${scenario}_monthly.rec/vic_${variable}_${model}_r1i1p1_${scenario}_${years}_WUSA_monthly_${timecalc}.nc"
+inputfile="/raid9/gergel/agg_snowpack/is_summ/${model}_${modnum}_${scenario}_monthly.rec/vic_${variable}_${model}_${modnum}_${scenario}_${years}_WUSA_monthly_${timecalc}.nc"
 fi 
 
 tmp="/raid9/gergel/agg_snowpack/goodleap/tmp_${model}_${variable}_${scenario}.nc"
