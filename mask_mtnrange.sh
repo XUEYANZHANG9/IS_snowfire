@@ -16,7 +16,7 @@ timecalc="monday1"
 elif [ "TotalSoilMoist" = "$variable" ]
 then
 timecalc="monday1"
-elif [ "pr" = "$variable" ] || [ "PET_NatVeg" = "$variable" ] || [ "PET_Short" = "$variable" ] || [ "PET_Tall" = "$variable" ] || [ "Transp" = "$variable" ] || [ "Evaporation" = "$variable" ]
+elif [ "pr" = "$variable" ] || [ "petNatVeg" = "$variable" ] || [ "petShort" = "$variable" ] || [ "petTall" = "$variable" ] || [ "Transp" = "$variable" ] || [ "Evaporation" = "$variable" ]
 then
 timecalc="monsum"
 else
@@ -26,23 +26,22 @@ fi
 #### and which scenario it is
 if [ "historical" = "$scenario" ]
 then
-years="1950-2005"
+years="1950_2005"
 else
-years="2006-2099"
+years="2006_2099"
 fi
 
-## /raid3/stumbaugh/IS/CONUS/share/monsumms-vic-gcm5I-livneh.20150123
+
 #### filename
-if [ "SWE" = "$variable" ]
+if [ "pr" = "$variable" ] || [ "tasmin" = "$variable" ] || [ "tasmax" = "$variable" ] 
 then
-inputfile="/raid3/stumbaugh/IS/CONUS/share/monsumms-vic-gcm10-livneh.20150127/${model}__${scenario}.${timecalc}.${variable}.${years}.nc"
-elif [ "TotalSoilMoist" = "$variable" ] || [ "PET_NatVeg" = "$variable" ] || [ "PET_Short" = "$variable" ] || [ "PET_Tall" = "$variable" ] || [ "Transp" = "$variable" ] || [ "Evaporation" = "$variable" ]
-then
-inputfile="/raid3/stumbaugh/IS/CONUS/share/monsumms-vic-gcm10-livneh.20150127/${model}__${scenario}.${timecalc}.${variable}.${years}.nc"
+inputfile="/raid9/gergel/agg_snowpack/is_summ/cat.WUS.summ.diana.tight/${model}_${scenario}_${variable}.${timecalc}.nc" 
 else
-inputfile="/raid3/stumbaugh/IS/CONUS/share/cat.WUS.summ.diana.patched/${model}_${scenario}_${variable}.${timecalc}.nc"
-fi
+inputfile="/raid9/gergel/agg_snowpack/is_summ/bcc-csm1-1-m_r1i1p1_historical_monthly.rec/vic_${variable}_${model}_r1i1p1_${scenario}_${years}_WUSA_monthly_${timecalc}.nc"
+fi 
+
 tmp="/raid9/gergel/agg_snowpack/goodleap/tmp_${model}_${variable}_${scenario}.nc"
+
 if [ "TotalSoilMoist" = "$variable" ]
 then
 outputfile="/raid9/gergel/agg_snowpack/goodleap/${basin}/${model}__${scenario}.${timecalc}.${variable}.${years}_${basin}_august.nc"
