@@ -4,10 +4,10 @@
 #$ -j y
 #$ -S /bin/bash
 #$ -q default.q
-#$ -N sm_mar
+#$ -N ensavg_allvars
 
-# variables="tasmax tasmin pr SWE TotalSoilMoist"
-variables="TotalSoilMoist" 
+variables="SWE tasmin tasmax TotalSoilMoist pr petNatVeg petShort petTall Transp Evaporation"
+#variables="tasmax tasmin pr" 
 basin="california whites northernrockies southernrockies cascades"
 scenario="historical rcp45 rcp85"
 models="NorESM1-M CNRM-CM5 CSIRO-Mk3-6-0 CanESM2 MIROC5 bcc-csm1-1-m HadGEM2-CC365 HadGEM2-ES365 CCSM4 IPSL-CM5A-MR"
@@ -19,7 +19,8 @@ sm_month="march"
 
 ## loop over models
 ## for var in 0 1 2 
-for var in 0 
+for var in 0 1 2 3 4 5 6 7 8 9  
+#for var in 0 1 2 
 do
 	#### format of filename depends on which variable it is
 	if [ "SWE" = "${arr_vars[$var]}" ]
@@ -28,7 +29,7 @@ do
 	elif [ "TotalSoilMoist" = "${arr_vars[$var]}" ]
 	then
 	timecalc="monday1"
-	elif [ "pr" = "${arr_vars[$var]}" ]
+	elif [ "pr" = "${arr_vars[$var]}" ] || [ "PET_NatVeg" = "${arr_vars[$var]}" ] || [ "PET_Short" = "${arr_vars[$var]}" ] || [ "PET_Tall" = "${arr_vars[$var]}" ] || [ "Transp" = "${arr_vars[$var]}" ] || [ "Evaporation" = "${arr_vars[$var]}" ]
 	then
 	timecalc="monsum"
 	else
