@@ -34,8 +34,8 @@ for j in np.arange(len(lats)): ## loop over latitude
                         #adjust_mask = lat_lon_adjust(lats[j],lons[k],basin)
                         if_in_box = mask_out_other_mtns(lats[j],lons[k])
 			mean_swe = historical_sum_swe(j,k)
-                        if if_in_box and mean_swe: ## then use data and get average for each grid cell 
-                            var_year = 0
+                        if if_in_box and mean_swe: ## then use data and get average for each grid cell  
+			    var_year = 0
 			    length = 30
                             for i in np.arange(30): 
                                 ind = i * 5 
