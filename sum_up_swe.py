@@ -2,7 +2,7 @@
 
 import numpy as np
 import math
-from snowpack_functions import lat_lon_adjust,get_dist,calc_area,unpack_netcdf_swe_month,mask_latlon,unpack_netcdf_file_var,historical_sum_swe
+from snowpack_functions import mask_out_other_mtns,get_dist,calc_area,unpack_netcdf_swe_month,unpack_netcdf_file_var,historical_sum_swe
 import sys
 import os
 ## get command line arguments
@@ -65,9 +65,10 @@ for i in np.arange(len(swe)):     ### loop over year
                 ### don't calculate area for missing value elements
                 	if (math.isnan(swe[i,j,k])) == False:
 				## REMOVE ADDITIONAL GRID CELLS ACCORDING TO LAT_LON_ADJUST FOR BOXES AND ADJUSTMENTS (LATER MASKS)
-				if_in_box = mask_latlon(lats[j],lons[k],basin)
-				adjust_mask = lat_lon_adjust(lats[j],lons[k],basin)
-				if if_in_box and adjust_mask:
+				#if_in_box = mask_latlon(lats[j],lons[k],basin)
+				#adjust_mask = lat_lon_adjust(lats[j],lons[k],basin)
+				if_in_box = mask_out_other_mtns(lats[j],lons[k])
+				if if_in_box:
                     			mean_swe = historical_sum_swe(j,k)
 		    			########################### EXCLUDE GRID CELLS WITH MEAN HISTORICAL SWE < 10 MM 
                     			if mean_swe: 
