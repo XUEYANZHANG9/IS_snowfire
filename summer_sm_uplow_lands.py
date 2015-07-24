@@ -56,10 +56,12 @@ lats_swe,lons_swe,hist_noswe,datess_swe = unpack_netcdf_file_var(direc,filename_
 ####################################################################################################
 ## masking for lowlands 
 if (basin == "nwinterior") or (basin == "plains") or (basin == "coastalnorth") or (basin == "coastalsouth") or (basin == "southwest"):
-	sm_swe_mask = np.ma.logical_and(hist_noswe,sm) ## mask with no swe mask  
 	
+	sm_swe_mask = np.ma.logical_and(hist_noswe,sm) ## mask with no swe mask  
+	sm_swe_mask_hist = np.ma.logical_and(hist_noswe,sm_hist) ## mask with no swe mask 
+
 	sm_masked = np.ma.masked_array(sm,mask=sm_swe_mask) 
-	sm_hist_masked = np.ma.masked_array(sm_hist,mask=sm_swe_mask) 
+	sm_hist_masked = np.ma.masked_array(sm_hist,mask=sm_swe_mask_hist) 
 	
 	a,b,c = sm_masked.shape
 	
@@ -73,9 +75,10 @@ if (basin == "nwinterior") or (basin == "plains") or (basin == "coastalnorth") o
 else: 
 	## mask sm with > 10 mm historical mean SWE
 	sm_swe_mask = np.ma.logical_and(hist_swe,sm) ## mask with swe mask 
+	sm_swe_mask_hist = np.ma.logical_and(hist_swe,sm_hist) ## mask with swe mask 
 	
 	sm_masked = np.ma.masked_array(sm,mask=sm_swe_mask) 
-	sm_hist_masked = np.ma.masked_array(sm_hist,mask=sm_swe_mask) 	
+	sm_hist_masked = np.ma.masked_array(sm_hist,mask=sm_swe_mask_hist) 	
 
 	a,b,c = sm_masked.shape
 	
@@ -100,10 +103,17 @@ vecfunc_create_gridcell_area_array = np.vectorize(create_gridcell_area_array)
 arr_for_areas = np.random.randn(len(lats),len(lons))
 cellareas = create_gridcell_area_array(arr_for_areas,latss,lonss)
 ## multiply grid cells with cell areas
-sm_minstor_area = np.ma.multiply(sm_minstorage,cellareas)*0.000001 ## also convert units
+sm_minstor_area = np.ma.multiply(sm_in_storage,cellareas)*0.000001 ## also convert units
 ## sum over grid cells
 # sm_sum = np.ma.apply_over_axes(np.sum,sm_minstor_area,[1,2])
-sm_sum = np.ma.sum(sm_minstor_area,[1,2]) 
+sm_sum = sm_minstor_area.sum(axis=(1,2)) 
+
+##### save arrays to files
+
+filearrayname = '/raid9/gergel/agg_snowpack/sm_summer/%s_%s.npz' %(basin,scenario)
+np.savez(filearrayname,sm=np.asarray(sm_sum) )
+
+print("finished running script successfully for %s %s" %(basin,scenario))  
 
 
 		
