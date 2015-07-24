@@ -77,10 +77,13 @@ else:
 	sm_swe_mask = np.ma.logical_and(hist_swe,sm) ## mask with swe mask 
 	sm_swe_mask_hist = np.ma.logical_and(hist_swe,sm_hist) ## mask with swe mask 
 	
-	sm_masked = np.ma.masked_array(sm,mask=sm_swe_mask) 
-	sm_hist_masked = np.ma.masked_array(sm_hist,mask=sm_swe_mask_hist) 	
+	sm_masked_full = np.ma.masked_array(sm,mask=sm_swe_mask) 
+	sm_hist_masked_full = np.ma.masked_array(sm_hist,mask=sm_swe_mask_hist) 	
 
 	a,b,c = sm_masked.shape
+	
+	sm_masked = sm_masked_full.reshape(3,a/3,b,c) 
+	sm_hist_masked = sm_hist_masked_full.reshape(3,56,b,c)
 	
 	## mask further with lats/lons 
 	gg, la_hist, lo_hist = np.meshgrid(np.arange(len(sm_hist_masked)),lats,lons,indexing='ij')  
