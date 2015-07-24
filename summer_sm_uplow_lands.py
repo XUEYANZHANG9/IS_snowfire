@@ -12,22 +12,19 @@ def subtract_min_sm(ts_scen,ts_historical):
 	ts_minus_min = ts_scen - min_in_storage
 	return(ts_minus_min) 
 
-def create_gridcell_area_array(no_years,lats,lons):
-	cellareas = np.ndarray(shape = (no_years,len(lats),len(lons)),dtype=float)
-	resol = 0.0625 ## 1/16th degree resolution
+def create_gridcell_area_array(arr,lats,lons):
 	import numpy as np
+	resol = 0.0625 ## 1/16th degree resolution
 	from snowpack_functions import calc_area
-	for i in np.arange(no_years):
-		for j in len(lats):
-			for k in len(lons):
-				cellareas[i,j,k] = calc_area(lats[j],lons[k],resol) 
-	return(cellareas) 
-def create_mask_mtn_ranges(arr,j,k,lats,lons):
+	vecfunc_calc_area = np.vectorize(calc_area) 
+	print(arr.shape) 
+	return(vecfunc_calc_area(lats,lons,resol)) 
+def create_mask_mtn_ranges(arr,lats_mesh,lons_mesh):
 	import numpy as np
 	import math
 	from snowpack_functions import mask_out_other_mtns
 	if (math.isnan(arr) == False): 
-		res = mask_out_other_mtns(lats[j],lons[k])
+		res = mask_out_other_mtns(lats_mesh,lons_mesh)
 		if (res == False):
 			return(np.nan)
 		else:
@@ -80,18 +77,28 @@ else:
 	sm_masked = np.ma.masked_array(sm,mask=sm_swe_mask) 
 	sm_hist_masked = np.ma.masked_array(sm_hist,mask=sm_swe_mask) 	
 
+	a,b,c = sm_masked.shape
+	
 	## mask further with lats/lons 
-	i, j, k = np.meshgrid(*map(np.arange,sm_masked.shape),indexing='ij')
-	# sm_hist_final = np.ma.apply_over_axes(create_mask_mtn_ranges,sm_masked,j,k,lats,lons,[1,2]) 
+	gg, la_hist, lo_hist = np.meshgrid(np.arange(len(sm_hist_masked)),lats,lons,indexing='ij')  
+	
+	gg,la,lo = np.meshgrid(np.arange(len(sm_masked)),lats,lons,indexing='ij') 
+	
 	vecfunc_create_mask_mtn_ranges = np.vectorize(create_mask_mtn_ranges)
-	sm_hist_final = vecfunc_create_mask_mtn_ranges(sm_hist_masked,j,k,lats,lons) 
-	# sm_final = np.ma.apply_over_axes(create_mask_mtn_ranges,sm_hist_masked,j,k,lats,lons,[1,2])
+	
+	sm_hist_final = vecfunc_create_mask_mtn_ranges(sm_hist_masked,la_hist,lo_hist)
+	sm_final = vecfunc_create_mask_mtn_ranges(sm_masked,la,lo)  
+	
 
 #####################################################################################################
 ## subtract minimum historical soil moisture in each grid cell from each summer soil moisture average
-sm_minstorage = np.ma.apply_along_axis(subtract_min_sm,0,sm_final,sm_hist_final)
+sm_minstorage = np.ma.apply_along_axis(np.min,0,sm_hist_final) ## calculate minimum historical soil moisture 
+sm_in_storage = sm_final - sm_minstorage ## subtract minimum historical soil moisture from every point in time series for each grid cell 
 ## get cell areas
-cellareas = create_gridcell_area_array(a,lats,lons)
+latss,lonss = np.meshgrid(lats,lons,indexing='ij') 
+vecfunc_create_gridcell_area_array = np.vectorize(create_gridcell_area_array) 
+arr_for_areas = np.random.randn(len(lats),len(lons))
+cellareas = create_gridcell_area_array(arr_for_areas,latss,lonss)
 ## multiply grid cells with cell areas
 sm_minstor_area = np.ma.multiply(sm_minstorage,cellareas)*0.000001 ## also convert units
 ## sum over grid cells
