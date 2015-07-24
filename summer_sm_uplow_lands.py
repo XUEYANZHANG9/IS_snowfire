@@ -33,8 +33,8 @@ def create_mask_mtn_ranges(arr,lats_mesh,lons_mesh):
 		return(arr) 
 ## get input arguments 
 args=sys.argv[1:]
-basin = args[1] 
-scenario = args[2] 
+basin = args[0] 
+scenario = args[1] 
 
 ## import data 
 direc = '/raid9/gergel/agg_snowpack/goodleap/%s' %basin 
@@ -102,8 +102,8 @@ cellareas = create_gridcell_area_array(arr_for_areas,latss,lonss)
 ## multiply grid cells with cell areas
 sm_minstor_area = np.ma.multiply(sm_minstorage,cellareas)*0.000001 ## also convert units
 ## sum over grid cells
-sm_sum = np.ma.apply_over_axes(np.sum,sm_minstor_area,[1,2])
-
+# sm_sum = np.ma.apply_over_axes(np.sum,sm_minstor_area,[1,2])
+sm_sum = np.ma.sum(sm_minstor_area,[1,2]) 
 
 
 		
