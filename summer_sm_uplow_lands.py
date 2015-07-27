@@ -19,18 +19,15 @@ def create_gridcell_area_array(arr,lats,lons):
 	vecfunc_calc_area = np.vectorize(calc_area) 
 	print(arr.shape) 
 	return(vecfunc_calc_area(lats,lons,resol)) 
-def create_mask_mtn_ranges(arr,lats_mesh,lons_mesh):
+def create_mask_mtn_ranges(arr,lats,lons):
 	import numpy as np
-	import math
 	from snowpack_functions import mask_out_other_mtns
-	if (math.isnan(arr) == False): 
-		res = mask_out_other_mtns(lats_mesh,lons_mesh)
-		if (res == False):
-			return(np.nan)
-		else:
-			return(arr) 
-	else: 
-		return(arr) 
+	for j in np.arange(len(lats)):
+		for k in np.arange(len(lons)):
+			arr[j,k] = mask_out_other_mtns(lats[j],lons[k])
+	return(arr) 
+
+
 ## get input arguments 
 args=sys.argv[1:]
 basin = args[0] 
@@ -50,7 +47,8 @@ lats,lons,sm,datess = unpack_netcdf_file_var(direc,filename,"TotalSoilMoist")
 direc = '/raid9/gergel/agg_snowpack/goodleap/SWE'
 filename = 'histmeanmask.nc' ## True where hist mean swe > 10 mm
 filename_lowlands = 'histmeanmask_lowlands.nc' ## True where hist mean swe < 10 mm 
-lats_swe,lons_swe,hist_swe,datess_swe = unpack_netcdf_file_var(direc,filename,"swe") 
+lats_swe,lons_swe,hist_swe,datess_swe = unpack_netcdf_file_var(direc,filename,"swe")
+hist_swe_mod = create_mask_mtn_ranges(hist_swe.squeeze(),lats_swe,lons_swe)  
 lats_swe,lons_swe,hist_noswe,datess_swe = unpack_netcdf_file_var(direc,filename_lowlands,"swe") 
 
 ####################################################################################################
@@ -68,37 +66,43 @@ if (basin == "nwinterior") or (basin == "plains") or (basin == "coastalnorth") o
 	sm_masked_res = sm_masked.reshape(3,a/3,b,c) 
 	sm_hist_masked_res = sm_hist_masked.reshape(3,56,b,c) 
 	
-	sm_hist_final = np.ma.apply_along_axis(np.mean,0,sm_hist_masked_res) 
-	sm_final = np.ma.apply_along_axis(np.mean,0,sm_masked_res)
+	sm_hist_final = sm_hist_masked_res.mean() 
+	sm_final = sm_masked_res.mean()
 	
 ## masking for uplands
 else: 
 	## mask sm with > 10 mm historical mean SWE
-	sm_swe_mask = np.ma.logical_and(hist_swe,sm) ## mask with swe mask 
-	sm_swe_mask_hist = np.ma.logical_and(hist_swe,sm_hist) ## mask with swe mask 
+	sm_swe_mask = np.ma.logical_and(hist_swe_mod,sm) ## mask with swe mask 
+	sm_swe_mask_hist = np.ma.logical_and(hist_swe_mod,sm_hist) ## mask with swe mask 
 	
 	sm_masked_full = np.ma.masked_array(sm,mask=sm_swe_mask) 
 	sm_hist_masked_full = np.ma.masked_array(sm_hist,mask=sm_swe_mask_hist) 	
 
-	a,b,c = sm_masked.shape
+	a,b,c = sm_masked_full.shape
 	
-	sm_masked = sm_masked_full.reshape(3,a/3,b,c) 
-	sm_hist_masked = sm_hist_masked_full.reshape(3,56,b,c)
+	sm_masked_res = sm_masked_full.reshape(3,a/3,b,c) 
+	sm_hist_masked_res = sm_hist_masked_full.reshape(3,56,b,c)
 	
+	#sm_masked = sm_masked_res.mean(0) 
+	#sm_hist_masked = sm_hist_masked_res.mean(0) 
+	
+	sm_hist_final = sm_masked_res.mean(0) 
+        sm_final = sm_hist_masked_res.mean(0) 
+
 	## mask further with lats/lons 
-	gg, la_hist, lo_hist = np.meshgrid(np.arange(len(sm_hist_masked)),lats,lons,indexing='ij')  
+	#gg, la_hist, lo_hist = np.meshgrid(np.arange(len(sm_hist_masked)),lats,lons,indexing='ij')  
 	
-	gg,la,lo = np.meshgrid(np.arange(len(sm_masked)),lats,lons,indexing='ij') 
+	#gg,la,lo = np.meshgrid(np.arange(len(sm_masked)),lats,lons,indexing='ij') 
 	
-	vecfunc_create_mask_mtn_ranges = np.vectorize(create_mask_mtn_ranges)
+	#vecfunc_create_mask_mtn_ranges = np.vectorize(create_mask_mtn_ranges)
 	
-	sm_hist_final = vecfunc_create_mask_mtn_ranges(sm_hist_masked,la_hist,lo_hist)
-	sm_final = vecfunc_create_mask_mtn_ranges(sm_masked,la,lo)  
+	#sm_hist_final = create_mask_mtn_ranges(sm_hist_masked,lats,lons)
+	#sm_final = create_mask_mtn_ranges(sm_masked,lats,lons)  
 	
 
 #####################################################################################################
 ## subtract minimum historical soil moisture in each grid cell from each summer soil moisture average
-sm_minstorage = np.ma.apply_along_axis(np.min,0,sm_hist_final) ## calculate minimum historical soil moisture 
+sm_minstorage = sm_hist_final.min(0) ## calculate minimum historical soil moisture 
 sm_in_storage = sm_final - sm_minstorage ## subtract minimum historical soil moisture from every point in time series for each grid cell 
 ## get cell areas
 latss,lonss = np.meshgrid(lats,lons,indexing='ij') 
