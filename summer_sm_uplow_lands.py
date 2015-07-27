@@ -17,26 +17,38 @@ def create_gridcell_area_array(arr,lats,lons):
 	resol = 0.0625 ## 1/16th degree resolution
 	from snowpack_functions import calc_area
 	vecfunc_calc_area = np.vectorize(calc_area) 
-	print(arr.shape) 
 	return(vecfunc_calc_area(lats,lons,resol)) 
 def create_mask_mtn_ranges(arr,lats,lons):
 	import numpy as np
 	from snowpack_functions import mask_out_other_mtns
 	for j in np.arange(len(lats)):
 		for k in np.arange(len(lons)):
-			arr[j,k] = mask_out_other_mtns(lats[j],lons[k])
+			arr[0,j,k] = mask_out_other_mtns(lats[j],lons[k])
 	return(arr) 
 
 
 ## get input arguments 
 args=sys.argv[1:]
-basin = args[0] 
-scenario = args[1] 
+type = args[0] 
+basin = args[1]
+if (type == "ensavg"):
+	scenario = args[2]
+else: 
+	model = args[2]
+	scenario = args[3] 
+if (scenario == "historical"):
+	years = "1950_2005"
+else:
+	years = "2006_2099"
 
 ## import data 
 direc = '/raid9/gergel/agg_snowpack/goodleap/%s' %basin 
-filename_hist = 'TotalSoilMoist_ensavg_%s_%s_summer.nc' %("historical",basin)
-filename = 'TotalSoilMoist_ensavg_%s_%s_summer.nc' %(scenario,basin)
+if (type == "eachgcm"):
+	filename_hist = '%s__%s.monmean.TotalSoilMoist.%s_%s_summer.nc' % (model,"historical","1950_2005",basin)
+	filename = '%s__%s.monmean.TotalSoilMoist.%s_%s_summer.nc' % (model,scenario,years,basin)
+else: 
+	filename_hist = 'TotalSoilMoist_ensavg_%s_%s_summer.nc' %("historical",basin)
+	filename = 'TotalSoilMoist_ensavg_%s_%s_summer.nc' %(scenario,basin)
 
 
 ## load data
@@ -48,7 +60,7 @@ direc = '/raid9/gergel/agg_snowpack/goodleap/SWE'
 filename = 'histmeanmask.nc' ## True where hist mean swe > 10 mm
 filename_lowlands = 'histmeanmask_lowlands.nc' ## True where hist mean swe < 10 mm 
 lats_swe,lons_swe,hist_swe,datess_swe = unpack_netcdf_file_var(direc,filename,"swe")
-hist_swe_mod = create_mask_mtn_ranges(hist_swe.squeeze(),lats_swe,lons_swe)  
+hist_swe_mod = create_mask_mtn_ranges(hist_swe,lats_swe,lons_swe)  
 lats_swe,lons_swe,hist_noswe,datess_swe = unpack_netcdf_file_var(direc,filename_lowlands,"swe") 
 
 ####################################################################################################
@@ -66,8 +78,8 @@ if (basin == "nwinterior") or (basin == "plains") or (basin == "coastalnorth") o
 	sm_masked_res = sm_masked.reshape(3,a/3,b,c) 
 	sm_hist_masked_res = sm_hist_masked.reshape(3,56,b,c) 
 	
-	sm_hist_final = sm_hist_masked_res.mean() 
-	sm_final = sm_masked_res.mean()
+	sm_hist_final = sm_hist_masked_res.mean(0) 
+	sm_final = sm_masked_res.mean(0)
 	
 ## masking for uplands
 else: 
@@ -83,26 +95,15 @@ else:
 	sm_masked_res = sm_masked_full.reshape(3,a/3,b,c) 
 	sm_hist_masked_res = sm_hist_masked_full.reshape(3,56,b,c)
 	
-	#sm_masked = sm_masked_res.mean(0) 
-	#sm_hist_masked = sm_hist_masked_res.mean(0) 
 	
-	sm_hist_final = sm_masked_res.mean(0) 
-        sm_final = sm_hist_masked_res.mean(0) 
+	sm_hist_final = sm_hist_masked_res.mean(0) 
+        sm_final = sm_masked_res.mean(0) 
 
-	## mask further with lats/lons 
-	#gg, la_hist, lo_hist = np.meshgrid(np.arange(len(sm_hist_masked)),lats,lons,indexing='ij')  
-	
-	#gg,la,lo = np.meshgrid(np.arange(len(sm_masked)),lats,lons,indexing='ij') 
-	
-	#vecfunc_create_mask_mtn_ranges = np.vectorize(create_mask_mtn_ranges)
-	
-	#sm_hist_final = create_mask_mtn_ranges(sm_hist_masked,lats,lons)
-	#sm_final = create_mask_mtn_ranges(sm_masked,lats,lons)  
 	
 
 #####################################################################################################
 ## subtract minimum historical soil moisture in each grid cell from each summer soil moisture average
-sm_minstorage = sm_hist_final.min(0) ## calculate minimum historical soil moisture 
+sm_minstorage = np.apply_along_axis(np.min,0,sm_hist_final) ## calculate minimum historical soil moisture 
 sm_in_storage = sm_final - sm_minstorage ## subtract minimum historical soil moisture from every point in time series for each grid cell 
 ## get cell areas
 latss,lonss = np.meshgrid(lats,lons,indexing='ij') 
@@ -112,15 +113,19 @@ cellareas = create_gridcell_area_array(arr_for_areas,latss,lonss)
 ## multiply grid cells with cell areas
 sm_minstor_area = np.ma.multiply(sm_in_storage,cellareas)*0.000001 ## also convert units
 ## sum over grid cells
-# sm_sum = np.ma.apply_over_axes(np.sum,sm_minstor_area,[1,2])
 sm_sum = sm_minstor_area.sum(axis=(1,2)) 
 
 ##### save arrays to files
+if (type == "ensavg"):
+	filearrayname = '/raid9/gergel/agg_snowpack/sm_summer/%s_%s.npz' %(basin,scenario)
+else:
+	filearrayname = '/raid9/gergel/agg_snowpack/sm_summer/%s_%s_%s.npz' %(basin,model,scenario)
 
-filearrayname = '/raid9/gergel/agg_snowpack/sm_summer/%s_%s.npz' %(basin,scenario)
 np.savez(filearrayname,sm=np.asarray(sm_sum) )
 
-print("finished running script successfully for %s %s" %(basin,scenario))  
-
+if (type == "ensavg"):
+	print("finished running script successfully for %s %s" %(basin,scenario))  
+else:
+	print("finished running script successfully for %s %s %s" %(basin,model,scenario))
 
 		
