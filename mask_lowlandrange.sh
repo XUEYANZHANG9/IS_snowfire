@@ -90,7 +90,7 @@ fi
 if [ "$basin" = "nwinterior" ]
 then
         echo "now processing $inputfile with $basin mask"
-        cdo masklonlatbox,-121.5,-111,49,42 $tmp $outputfile
+        outputfile=$tmp
 elif [ "$basin" = "coastalnorth" ]
 then
         echo "now processing $inputfile with $basin mask"
@@ -98,13 +98,20 @@ then
 elif [ "$basin" = "coastalsouth" ]
 then
         echo "now processing $inputfile with $basin mask"
-	cdo masklonlatbox,-124,-118.5,41.5,33 $tmp $outputfile
-elif [ "$basin" = "southwest" ]
+	outputfile=$tmp
+elif [ "$basin" = "missouri" ]
 then
         echo "now processing $inputfile with $basin mask"
-        cdo masklonlatbox,-120,-103,42,31.5 $tmp $outputfile
-else [ "$basin" = "plains" ]
+        outputfile=$tmp
+elif [ "$basin" = "great_basin" ]
+then
         echo "now processing $inputfile with $basin mask"
-        cdo masklonlatbox,-110,-104,49,41 $tmp $outputfile
+        outputfile=$tmp
+elif [ "$basin" = "lower_colorado"]  
+then
+	echo "now processing $inputfile wtih $basin mask"
+	outputfile=$tmp
+else
+	echo "the wrong basin name was entered as input"
 fi
  
