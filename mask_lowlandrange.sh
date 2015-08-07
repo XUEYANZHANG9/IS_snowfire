@@ -67,51 +67,17 @@ fi
 ##############################################################################################################################################################################
 #### lat lon boundaries depend on mtn range
 
-if [ "$variable" = "SWE" ]
-then
-        cdo selmon,4 $inputfile $tmp
-elif [ "$variable" = "TotalSoilMoist" ]
+if [ "$variable" = "TotalSoilMoist" ] && [ "$basin" = "coastalnorth" ] 
 then
 	cdo selmon,6,7,8 $inputfile $tmp
-elif [ "$variable" = "pr" ]
-then
-        cdo selmon,11,12,1,2,3 $inputfile $tmp
-elif [ "$variable" = "tasmax" ]
-then
-	cdo selmon,11,12,1,2,3 $inputfile $tmp
-elif [ "$variable" = "tasmin" ]
-then
-	cdo selmon,11,12,1,2,3 $inputfile $tmp
 else
-	echo "the entire year is needed for this variable,so tmp = inputfile" 
-	tmp=$inputfile 
+	echo "now processing $inputfile with cdo selmon" 
+	cdo selmon,6,7,8 $inputfile $outputfile 
 fi
 
-if [ "$basin" = "nwinterior" ]
-then
-        echo "now processing $inputfile with $basin mask"
-        outputfile=$tmp
-elif [ "$basin" = "coastalnorth" ]
+if [ "$basin" = "coastalnorth" ]
 then
         echo "now processing $inputfile with $basin mask"
         cdo masklonlatbox,-124.5,-122,48,41.5 $tmp $outputfile
-elif [ "$basin" = "coastalsouth" ]
-then
-        echo "now processing $inputfile with $basin mask"
-	outputfile=$tmp
-elif [ "$basin" = "missouri" ]
-then
-        echo "now processing $inputfile with $basin mask"
-        outputfile=$tmp
-elif [ "$basin" = "great_basin" ]
-then
-        echo "now processing $inputfile with $basin mask"
-        outputfile=$tmp
-elif [ "$basin" = "lower_colorado"]  
-then
-	echo "now processing $inputfile wtih $basin mask"
-	outputfile=$tmp
-else
-	echo "the wrong basin name was entered as input"
 fi
  
