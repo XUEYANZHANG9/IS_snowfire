@@ -1,13 +1,18 @@
 #!/bin/python 
 import math
 import numpy as np 
-from snowpack_functions import unpack_netcdf_gen,lat_lon_adjust,mask_latlon 
+from snowpack_functions import unpack_netcdf_gen,lat_lon_adjust,mask_latlon,unpack_netcdf_file_var,historical_sum_swe,mask_out_other_mtns
 import sys
 
 ## get input args: basin, scenario
 args = sys.argv[1:]
-basin = args[0]
-scenario = args[1]
+type = args[0] 
+basin = args[1]
+if (type == "ensavg"):
+	scenario = args[2]
+else:
+	model = args[2]
+	scenario = args[3]
 
 ## initialize arrays for swe, precip and temp
 if (scenario == "historical"):
@@ -28,10 +33,31 @@ else:
 lats_inc = list()
 lons_inc = list()
 ## get data
-lats, lons, swe, datess_swe = unpack_netcdf_gen("SWE", basin, scenario)
-lats, lons, temp_max, datess_temp = unpack_netcdf_gen("tasmax", basin,scenario)
-lats, lons, temp_min, datess_temp = unpack_netcdf_gen("tasmin", basin, scenario)
-lats, lons, precip, datess_precip = unpack_netcdf_gen("pr", basin, scenario)
+
+direc = '/raid9/gergel/agg_snowpack/goodleap/%s' %basin
+
+if (type == "ensavg"):
+        file_swe = 'SWE_ensavg_%s_%s.nc' %(scenario,basin)
+	file_tasmax = 'tasmax_ensavg_%s_%s.nc' %(scenario,basin)
+	file_tasmin = 'tasmin_ensavg_%s_%s.nc' %(scenario,basin)
+	file_pr = 'pr_ensavg_%s_%s.nc' %(scenario,basin)
+else:
+        if (scenario == "historical"):
+                file_swe = '%s__%s.monday1.SWE.1950_2005_%s.nc' %(model,scenario,basin)
+        	file_tasmax = '%s__%s.monmean.tasmax.1950_2005_%s.nc' %(model,scenario,basin)
+		file_tasmin = '%s__%s.monmean.tasmin.1950_2005_%s.nc' %(model,scenario,basin)
+		file_pr = '%s__%s.monsum.pr.1950_2005_%s.nc' %(model,scenario,basin)
+	else:
+                file_swe = '%s__%s.monday1.SWE.2006_2099_%s.nc' %(model,scenario,basin)
+		file_tasmax = '%s__%s.monmean.tasmax.2006_2099_%s.nc' %(model,scenario,basin)
+		file_tasmin = '%s__%s.monmean.tasmin.2006_2099_%s.nc' %(model,scenario,basin)		
+		file_pr = '%s__%s.monsum.pr.2006_2099_%s.nc' %(model,scenario,basin)
+print(direc)
+print(file_swe) 
+lats, lons, swe, datess_swe = unpack_netcdf_file_var(direc,file_swe,"swe")
+lats, lons, temp_max, datess_temp = unpack_netcdf_file_var(direc,file_tasmax,"air_temp_max")
+lats, lons, temp_min, datess_temp = unpack_netcdf_file_var(direc,file_tasmin,"air_temp_min")
+lats, lons, precip, datess_precip = unpack_netcdf_file_var(direc,file_pr,"pr")
 
 ## adjust data for hydro years
 precip = precip[3:-2,:,:]
@@ -49,16 +75,20 @@ for j in np.arange(len(lats)): 	## loop over latitude
 		### don't calculate area for missing value elements
 		if (math.isnan(swe[0,j,k])) == False: 
 			## REMOVE ADDITIONAL GRID CELLS ACCORDING TO LAT_LON_ADJUST FOR BOXES AND ADJUSTMENTS (LATER MASKS)
-			if_in_box = mask_latlon(lats[j],lons[k],basin)
-			adjust_mask = lat_lon_adjust(lats[j],lons[k],basin)
-			if if_in_box and adjust_mask:
+			#if_in_box = mask_latlon(lats[j],lons[k],basin)
+			#adjust_mask = lat_lon_adjust(lats[j],lons[k],basin)
+			if_in_box = mask_out_other_mtns(lats[j],lons[k]) 
+			if if_in_box:
+				mean_swe = historical_sum_swe(j,k) 
+				'''
 				historical_sum_swe = 0
 				## CALCULATE MEAN HISTORICAL SWE	
 				for year in np.arange(len(swe_hist)): 
 					historical_sum_swe += swe_hist[year,j,k]
 				mean_swe = historical_sum_swe/len(swe_hist)
 				## EXCLUDE GRID CELLS WITH MEAN HISTORICAL SWE < 10 MM 
-				if (mean_swe >= 10):
+				'''
+				if (mean_swe): ## if historical mean swe of this grid cell is > 10 mm, include it for analysis, otherwise don't 
 					swe_avg = 0
 					temp_avg = 0
 					swe_avg1 = 0
@@ -101,7 +131,10 @@ for j in np.arange(len(lats)): 	## loop over latitude
 					lats_inc.append(lats[j])
 					lons_inc.append(lons[k]) 
 ## save arrays to files for plotting in a different script
-filearrayname = '/raid9/gergel/agg_snowpack/swe_t_p_reg/proc_data/ensavg_%s_%s.npz' %(basin,scenario)
+if (type == "ensavg"):
+	filearrayname = '/raid9/gergel/agg_snowpack/swe_t_p_reg/proc_data/ensavg_%s_%s.npz' %(basin,scenario)
+else:
+	filearrayname = '/raid9/gergel/agg_snowpack/swe_t_p_reg/proc_data/%s_%s_%s.npz' %(model,basin,scenario)
 if (scenario == "historical"):
 	np.savez(filearrayname,swe=np.asarray(swe_april),precip=np.asarray(precip_tot),temp_avg=np.asarray(temp_average),lats=np.asarray(lats_inc),lons=np.asarray(lons_inc))
 else:
