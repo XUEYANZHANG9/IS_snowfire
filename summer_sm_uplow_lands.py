@@ -30,12 +30,15 @@ def create_mask_mtn_ranges(arr,lats,lons):
 ## get input arguments 
 args=sys.argv[1:]
 type = args[0] 
-basin = args[1]
+variable=args[1]
+basin = args[2]
 if (type == "ensavg"):
-	scenario = args[2]
+	scenario = args[3]
 else: 
-	model = args[2]
-	scenario = args[3] 
+	model = args[3]
+	scenario = args[4] 
+if (variable == "pr"):
+	season = args[5]
 if (scenario == "historical"):
 	years = "1950_2005"
 else:
@@ -52,14 +55,23 @@ else:
 #	hist_direc = '/raid9/gergel/agg_snowpack/is_summ/%s_%s_%s_monthly.rec' % (model,modnum,"historical")
 #	filename = 'vic_TotalSoilMoist_%s_%s_%s_%s_WUSA_monthly_monmean.nc' % (model,modnum,scenario,years) 
 #	filename_hist = 'vic_TotalSoilMoist_%s_%s_%s_%s_WUSA_monthly_monmean.nc' % (model,modnum,"historical","1950_2005")
-
 direc = '/raid9/gergel/agg_snowpack/goodleap/%s' %basin
-filename_hist = '%s__%s.monmean.TotalSoilMoist.%s_%s_summer.nc' % (model,"historical","1950_2005",basin)
-filename = '%s__%s.monmean.TotalSoilMoist.%s_%s_summer.nc' % (model,scenario,years,basin)
+if (variable == "TotalSoilMoist"):
+	filename_hist = '%s__%s.monmean.TotalSoilMoist.%s_%s_summer.nc' % (model,"historical","1950_2005",basin)
+	filename = '%s__%s.monmean.TotalSoilMoist.%s_%s_summer.nc' % (model,scenario,years,basin)
+else:
+	filename_hist = '%s__%s.monsum.pr.%s_%s_%s.nc' % (model,"historical","1950_2005",basin,season)
+        filename = '%s__%s.monsum.pr.%s_%s_%s.nc' % (model,scenario,years,basin,season)
 
 ## load data
-lats,lons,sm_hist,datess_hist = unpack_netcdf_file_var(direc,filename_hist,"TotalSoilMoist")
-lats,lons,sm,datess = unpack_netcdf_file_var(direc,filename,"TotalSoilMoist") 
+if (variable == "TotalSoilMoist"):
+	lats,lons,sm_hist,datess_hist = unpack_netcdf_file_var(direc,filename_hist,"TotalSoilMoist")
+	lats,lons,sm,datess = unpack_netcdf_file_var(direc,filename,"TotalSoilMoist") 
+else:
+	print(os.path.join(direc,filename_hist))
+	print(os.path.join(direc,filename))
+	lats,lons,sm_hist,datess_hist = unpack_netcdf_file_var(direc,filename_hist,"pr")
+        lats,lons,sm,datess = unpack_netcdf_file_var(direc,filename,"pr")
 
 ## load historical mean SWE file and get mask
 direc = '/raid9/gergel/agg_snowpack/goodleap/SWE'
@@ -164,7 +176,10 @@ sm_sum = sm_in_storage.sum(axis=(1,2))*0.000001
 if (type == "ensavg"):
 	filearrayname = '/raid9/gergel/agg_snowpack/sm_summer/%s_%s.npz' %(basin,scenario)
 else:
-	filearrayname = '/raid9/gergel/agg_snowpack/sm_summer/%s_%s_%s.npz' %(basin,model,scenario)
+	if (variable == "pr"):
+		filearrayname = '/raid9/gergel/agg_snowpack/precip_summer/%s_%s_%s_%s.npz' %(basin,model,scenario,season)
+	else:
+		filearrayname = '/raid9/gergel/agg_snowpack/sm_summer/%s_%s_%s.npz' %(basin,model,scenario)
 
 np.savez(filearrayname,sm=np.asarray(sm_sum) )
 
