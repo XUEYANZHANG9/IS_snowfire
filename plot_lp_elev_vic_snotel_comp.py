@@ -12,7 +12,7 @@ from vic_functions import get_snow_band,find_gridcell
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt 
-from numpy import nanmean 
+from scipy.stats import nanmean 
 
 ## function to get elevation for snotel site 
 def get_snotel_elevation(site_id):
@@ -52,10 +52,11 @@ for basin in basins:
 			path,fname = os.path.split(pathfile)
 			elev,lat,lon = get_snotel_elevation(site) ## get elevation, latitude and longitude of snotel site
 			snow_band,lat,lon = get_snow_band(fname,elev) ## get which snowband to use for snotel elevation
-			mask1 = lat_lon_adjust(float(lat),float(lon),basin) ## apply first lat/lon mask
-			mask2 = mask_latlon(float(lat),float(lon),basin) ## apply second lat/lon mask
+			#mask1 = lat_lon_adjust(float(lat),float(lon),basin) ## apply first lat/lon mask
+			mask1 = mask_out_other_mtns(float(lat),float(lon)) ## apply lat/lon mask
+			#mask2 = mask_latlon(float(lat),float(lon),basin) ## apply second lat/lon mask
 			# mask3 = historical_sum_swe(j,k) ## apply historical mean swe mask (using Livneh)
-			if mask1 and mask2: ## apply further masking: include grid cell IF within mask
+			if mask1: ## apply further masking: include grid cell IF within mask
 				if snow_band == 0:
 					data = np.loadtxt(pathfile,dtype='float',usecols=(3,),delimiter='\t')
 				elif snow_band == 1:
