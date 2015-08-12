@@ -3,7 +3,7 @@
 import numpy as np
 import os
 import sys
-from snowpack_functions import lat_lon_adjust,mask_latlon,historical_sum_swe
+from snowpack_functions import lat_lon_adjust,mask_latlon,historical_sum_swe,mask_out_other_mtns
 import glob
 from scipy import stats
 import datetime 
@@ -203,17 +203,28 @@ for basin in basins:
 				ax.plot(swe90,elevmet,'s',color=colours[count])
 				count += 1
 		count1 += 1
-	if (basin == "whites"):
+	if (basin == "southernrockies"):
 		import matplotlib.patches as mpatches
 
 		red_patch = mpatches.Patch(color='red', label='Simulated')
 		green_patch = mpatches.Patch(color='green', label='Observed')
 
-		ax.legend(handles=[red_patch,green_patch],bbox_to_anchor=(1.05, 1), loc=2)
+		ax.legend(handles=[red_patch,green_patch],bbox_to_anchor=(1.1, 1.05), loc=2)
 		# ax.legend(handles=[red_patch,green_patch])
 	if (basin == "california"):
 		ax.set_ylabel('Elevation [m]') 
-	ax.set_xlabel('SWE [mm]') 
+	if (basin == "northernrockies"):
+		ax.set_xlabel('SWE [mm]',size=15) 
+	ax.set_ylim([0,3500]) 
+
+	## set x ticks #######
+	if (basin == "cascades") or (basin == "california") or (basin == "northernrockies"):
+		ax.set_xticks([0,400,800,1200]) 
+	elif (basin == "whites"):
+		ax.set_xticks([0,75,150,225])
+	else:
+		ax.set_xticks([0,1000,2000,3000])  
+
 	#plt.title('April 1 SWE in %s' %basin) 
 	#plt.legend()
 	num += 1 
