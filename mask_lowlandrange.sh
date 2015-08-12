@@ -8,6 +8,8 @@ variable=$1
 basin=$2
 model=$3
 scenario=$4
+season=$5
+ 
 
 #### format of filename depends on which variable it is
 if [ "SWE" = "$variable" ]
@@ -54,7 +56,7 @@ if [ "TotalSoilMoist" = "$variable" ]
 then
 outputfile="/raid9/gergel/agg_snowpack/goodleap/${basin}/${model}__${scenario}.${timecalc}.${variable}.${years}_${basin}_summer.nc"
 else 
-outputfile="/raid9/gergel/agg_snowpack/goodleap/${basin}/${model}__${scenario}.${timecalc}.${variable}.${years}_${basin}.nc"
+outputfile="/raid9/gergel/agg_snowpack/goodleap/${basin}/${model}__${scenario}.${timecalc}.${variable}.${years}_${basin}_${season}.nc"
 fi
 
 
@@ -70,14 +72,57 @@ fi
 if [ "$variable" = "TotalSoilMoist" ] && [ "$basin" = "coastalnorth" ] 
 then
 	cdo selmon,6,7,8 $inputfile $tmp
-else
+elif [ "$variable" = "TotalSoilMoist" ] && [ "$basin" != "coastalnorth" ]
+then
 	echo "now processing $inputfile with cdo selmon" 
 	cdo selmon,6,7,8 $inputfile $outputfile 
+
+elif [ "$variable" = "pr" ] && [ "$basin" = "coastalnorth" ] || [ "$basin" = "cascades" ] || [ "$basin" = "california" ] || [ "$basin" = "northernrockies" ] || [ "$basin" = "southernrockies" ] || [ "$basin" = "whites" ] 
+then
+	if [ "$season" = "mam" ]
+	then
+	echo "processing $inputfile with mam"
+	cdo selmon,3,4,5 $inputfile $tmp
+	else
+	echo "processing $inputfile with jja"
+	cdo selmon,6,7,8 $inputfile $tmp 
+	fi 
+
+elif [ "$variable" = "pr" ] && [ "$basin" != "coastalnorth" ] 
+then
+	if [ "$season" = "mam" ]
+        then
+        echo "processing $inputfile with $basin mam"
+        cdo selmon,3,4,5 $inputfile $outputfile
+        else
+        echo "processing $inputfile with $basin jja"
+        cdo selmon,6,7,8 $inputfile $outputfile
+        fi
 fi
 
 if [ "$basin" = "coastalnorth" ]
 then
         echo "now processing $inputfile with $basin mask"
         cdo masklonlatbox,-124.5,-122,48,41.5 $tmp $outputfile
+elif [ "$basin" = "northernrockies" ]
+then
+        echo "now processing $inputfile with $basin mask"
+        cdo masklonlatbox,-119.5,-107.5,49.0,42.37 $tmp $outputfile
+elif [ "$basin" = "southernrockies" ]
+then
+        echo "now processing $inputfile with $basin mask"
+        cdo masklonlatbox,-113.0,-104.0,42.37,35.0 $tmp $outputfile
+elif [ "$basin" = "whites" ]
+then
+        echo "now processing $inputfile with $basin mask"
+        cdo masklonlatbox,-111,-108,36,32 $tmp $outputfile
+elif [ "$basin" = "cascades" ]
+then
+        echo "now processing $inputfile with $basin mask"
+        cdo masklonlatbox,-123.25,-119.5,49.0,41.5 $tmp $outputfile
+elif [ "$basin" = "california" ] 
+then 
+	echo "now processing $inputfile with $basin mask"
+        cdo masklonlatbox,-122.5,-117,41.5,34.5 $tmp $outputfile
 fi
  
