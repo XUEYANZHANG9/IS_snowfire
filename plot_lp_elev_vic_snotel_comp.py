@@ -30,7 +30,7 @@ def get_snotel_elevation(site_id):
 fig = plt.figure(figsize=(18,10))
 ## loop over basins 
 basins = ['cascades','california','northernrockies','southernrockies','whites']
-num = 0
+num = 1
 for basin in basins: 
 
 	## step 2: for each snotel site, extract elevation band from vic simulations closest to snotel elevation
@@ -203,27 +203,27 @@ for basin in basins:
 				ax.plot(swe90,elevmet,'s',color=colours[count])
 				count += 1
 		count1 += 1
-	if (basin == "southernrockies"):
+	if (basin == "whites"):
 		import matplotlib.patches as mpatches
 
 		red_patch = mpatches.Patch(color='red', label='Simulated')
 		green_patch = mpatches.Patch(color='green', label='Observed')
 
-		ax.legend(handles=[red_patch,green_patch],bbox_to_anchor=(1.1, 1.05), loc=2)
-		# ax.legend(handles=[red_patch,green_patch])
-	if (basin == "california"):
+		#ax.legend(handles=[red_patch,green_patch],bbox_to_anchor=(1.1, 1.05), loc=2)
+		ax.legend(loc='upper right',handles=[red_patch,green_patch],shadow=True)
+	if (num == 1):
 		ax.set_ylabel('Elevation [m]') 
-	if (basin == "northernrockies"):
+	if (num == 3):
 		ax.set_xlabel('SWE [mm]',size=15) 
 	ax.set_ylim([0,3500]) 
 
 	## set x ticks #######
-	if (basin == "cascades") or (basin == "california") or (basin == "northernrockies"):
+	if (basin == "northernrockies") or (basin == "california") or (basin == "southernrockies"):
 		ax.set_xticks([0,400,800,1200]) 
 	elif (basin == "whites"):
 		ax.set_xticks([0,75,150,225])
 	else:
-		ax.set_xticks([0,1000,2000,3000])  
+		ax.set_xticks([0,1500,3000,4500])  
 
 	#plt.title('April 1 SWE in %s' %basin) 
 	#plt.legend()
