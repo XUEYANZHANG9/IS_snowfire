@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[193]:
+# In[2]:
 
 def find_elevmet(scenario,dataname,swelist,elevation):
     if (scenario == "historical"): 
@@ -30,7 +30,7 @@ def find_elevmet(scenario,dataname,swelist,elevation):
     return(elevmet,cr)
 
 
-# In[194]:
+# In[3]:
 
 def make_swelists(basin,scenario,dataname):  
     file = '/raid9/gergel/agg_snowpack/swe_t_p_reg/proc_data/ensavg_%s_%s.npz' %(basin,scenario)
@@ -69,7 +69,7 @@ def make_swelists(basin,scenario,dataname):
     return(swe_500,swe_1000,swe_1500,swe_2000,swe_2500,swe_3000,swe_3500,swe_4000)
 
 
-# In[195]:
+# In[4]:
 
 def swe_stats(swe_array):
     meanswe = np.mean(swe_array)
@@ -86,14 +86,14 @@ def swe_stats(swe_array):
     return(meanswe,minswe,maxswe,swe10,swe90,xmin,xmax,xmid)
 
 
-# In[196]:
+# In[5]:
 
 import sys
 import os
 import numpy as np
 import matplotlib
-matplotlib.use('Agg') 
 #get_ipython().magic(u'matplotlib inline')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from scipy import stats
 from snowpack_functions import get_elev_for_lat_lon,import_gridcell_elevation
@@ -101,32 +101,32 @@ from snowpack_functions import get_elev_for_lat_lon,import_gridcell_elevation
 basins = ["whites"]
 scenarios = ["historical","rcp45","rcp45","rcp45","historical","rcp85","rcp85","rcp85"] 
 datanames = ['swe','swe_2010_2039','swe_2040_2069','swe_2070_2099','swe','swe_2010_2039','swe_2040_2069','swe_2070_2099']
-lw = 2.0
-offset = 60
+lw = 4.0
+offset = 90
 soil_file = '/raid9/gergel/agg_snowpack/soil_avail.txt'
 elev_corr_info  = import_gridcell_elevation(soil_file)
 
 
-# In[205]:
+# In[6]:
 
-fig = plt.figure(figsize=(15,14))
+fig = plt.figure(figsize=(15,24))
 # basin = 'whites'
 count = 0
+nn = 0.01
+scens = ['rcp45','rcp85']
 basins = ['cascades','california','northernrockies','southernrockies','whites']
 for basin in basins: 
     elev_conn = np.ndarray(shape=(3,8,8),dtype='float') ## [rows: scenarios, columns: elevations]
     swe_conn = np.ndarray(shape=(3,8,8),dtype='float')
-    nn = 0.01
-    scens = ['rcp45','rcp85']
     for scenn in scens: 
         if (scenn == 'rcp45'):
             lop = np.arange(4)
-            ax = fig.add_subplot(5,2,count)
+            ax = fig.add_subplot(5,2,count+1)
             row = 0
             col = 4
         else: 
             lop = np.arange(4,8)
-            ax = fig.add_subplot(5,2,count)
+            ax = fig.add_subplot(5,2,count+1)
             row = 4
             col = 8
         for scennum in lop: 
@@ -154,7 +154,7 @@ for basin in basins:
                     swe_conn[0,scennum,swenum] = meanswe
                     swe_conn[1,scennum,swenum] = swe10
                     swe_conn[2,scennum,swenum] = swe90
-                    ax.set_ylim((500,4000))
+                    ax.set_ylim((250,4000))
             for elv in np.arange(len(elevations)): 
                 elevmeansorted = elev_conn[0,row:col,elv]
                 swemeansorted = swe_conn[0,row:col,elv]
@@ -162,15 +162,34 @@ for basin in basins:
                 sweminsorted = swe_conn[1,row:col,elv]
                 elevmaxsorted = elev_conn[2,row:col,elv]
                 swemaxsorted = swe_conn[2,row:col,elv]
+		'''
                 if np.sum(elevmeansorted) > 1:
                     ax.plot(swemeansorted[swemeansorted > nn],elevmeansorted[swemeansorted > nn],'k-')
                     ax.plot(sweminsorted[swemeansorted > nn],elevminsorted[swemeansorted > nn],'k-')
+                    ax.plot(swemaxsorted[swemeansorted > nn],elevmaxsorted[swemeansorted > nn],'k-')
                     ax.plot(swemaxsorted[sweminsorted > nn],elevmaxsorted[sweminsorted > nn],'k-')
-                    ax.fill_betweenx(elevminsorted[swemeansorted > nn],swemeansorted[swemeansorted > nn], 
-                                     sweminsorted[swemeansorted > nn], facecolor='lightsalmon',alpha=0.4)
-                    ax.fill_betweenx(elevminsorted[swemeansorted > nn],swemeansorted[swemeansorted > nn], 
-                                     swemaxsorted[swemeansorted > nn], facecolor='skyblue',alpha=0.4)
-    count += 1
+                    ax.fill_betweenx(elevminsorted[swemeansorted > nn],swemeansorted[swemeansorted > nn],sweminsorted[swemeansorted > nn], facecolor='lightsalmon',alpha=0.4)
+                    ax.fill_betweenx(elevminsorted[swemeansorted > nn],swemeansorted[swemeansorted > nn], swemaxsorted[swemeansorted > nn], facecolor='skyblue',alpha=0.4)
+        	'''
+	if (basin == "cascades") and (scenn == "rcp85"):
+		ax.set_title('RCP 8.5',size=15) 
+		import matplotlib.patches as mpatches
+		red_p = mpatches.Patch(color='red',label='Historical')
+		green_p = mpatches.Patch(color='g',label='2010-2039')
+		blue_p = mpatches.Patch(color='b',label='2040-2069')
+		mag_p = mpatches.Patch(color='m',label='2070-2099') 
+		ax.legend(handles=[red_p,green_p,blue_p,mag_p]) 
+	elif (basin == "cascades") and (scenn == "rcp45"):
+		ax.set_title('RCP 4.5',size=15) 
+	count += 1
+    
+    
+# In[ ]:
+plotname = 'zz_elevs_swe_shaded'
+direc='/raid9/gergel/agg_snowpack/plots/'
+savepath = os.path.join(direc,plotname)
+plt.savefig(savepath)
+print("plot successfully saved")
 
 
 # In[ ]:
