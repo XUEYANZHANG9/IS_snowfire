@@ -194,23 +194,30 @@ for basin in basins:
 				ax.plot(xmax,np.ones(len(xmax))*elevmet,color=colours[count],linestyle='--',linewidth=lw)
 				## 10-90 range
 				xmid = np.arange(swe10,swe90,1)
-				ax.plot(xmid,np.ones(len(xmid))*elevmet,color=colours[count],linestyle='-',linewidth=lw)
-				## mean
-				ax.plot(meanswe,elevmet,'o',color=colours[count])
-				## 10th
-				ax.plot(swe10,elevmet,'s',color=colours[count])
-				## 90th
-				ax.plot(swe90,elevmet,'s',color=colours[count])
+				if (count == 0):
+					ax.plot(xmid,np.ones(len(xmid))*elevmet,label='Simulated',color=colours[count],linestyle='-',linewidth=lw)
+					ax.plot(meanswe,elevmet,'o',label='Mean Simulated',color=colours[count])
+					ax.plot(swe10,elevmet,'s',label='Simulated 10th Percentile',color=colours[count])
+					ax.plot(swe90,elevmet,'s',label='Simulated 90th Percentile',color=colours[count])
+				else:
+					ax.plot(xmid,np.ones(len(xmid))*elevmet,label='Observed',color=colours[count],linestyle='-',linewidth=lw)
+					ax.plot(meanswe,elevmet,'o',label='Mean Observed',color=colours[count])
+					ax.plot(swe10,elevmet,'s',label='Observed 10th Percentile',color=colours[count])
+					ax.plot(swe90,elevmet,'s',label='Observed 90th Percentile',color=colours[count])
+				
+				if (basin == "whites") and (count1 == 2):
+					ax.legend(loc='lower right') 
+				
 				count += 1
 		count1 += 1
-	if (basin == "whites"):
-		import matplotlib.patches as mpatches
+	#if (basin == "whites"):
+	import matplotlib.patches as mpatches
 
-		red_patch = mpatches.Patch(color='red', label='Simulated')
-		green_patch = mpatches.Patch(color='green', label='Observed')
+	red_patch = mpatches.Patch(color='red', label='Simulated')
+	green_patch = mpatches.Patch(color='green', label='Observed')
 
-		#ax.legend(handles=[red_patch,green_patch],bbox_to_anchor=(1.1, 1.05), loc=2)
-		ax.legend(loc='upper right',handles=[red_patch,green_patch],shadow=True)
+	#ax.legend(handles=[red_patch,green_patch],bbox_to_anchor=(1.1, 1.05), loc=2)
+	#ax.legend(loc='upper right',handles=[red_patch,green_patch],shadow=True)
 	if (num == 1):
 		ax.set_ylabel('Elevation [m]') 
 	if (num == 3):
@@ -228,6 +235,7 @@ for basin in basins:
 	#plt.title('April 1 SWE in %s' %basin) 
 	#plt.legend()
 	num += 1 
+# fig.legend(handles=[red_patch,green_patch],loc=2) 
 plot_direc = '/raid9/gergel/agg_snowpack/snotel_vic/plots'
 plotname = 'binned_allbasins_april1swe' 
 savepath = os.path.join(plot_direc,plotname)
