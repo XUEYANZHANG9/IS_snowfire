@@ -101,6 +101,7 @@ from snowpack_functions import get_elev_for_lat_lon,import_gridcell_elevation
 basins = ["whites"]
 scenarios = ["historical","rcp45","rcp45","rcp45","historical","rcp85","rcp85","rcp85"] 
 datanames = ['swe','swe_2010_2039','swe_2040_2069','swe_2070_2099','swe','swe_2010_2039','swe_2040_2069','swe_2070_2099']
+legendnames = ['Historical','2010-2039','2040-2069','2070-2099','Historical','2010-2039','2040-2069','2070-2099']
 lw = 4.0
 offset = 90
 soil_file = '/raid9/gergel/agg_snowpack/soil_avail.txt'
@@ -132,6 +133,7 @@ for basin in basins:
         for scennum in lop: 
             scenario = scenarios[scennum]
             dataname = datanames[scennum]
+	    legendname = legendnames[scennum]
             swe_500,swe_1000,swe_1500,swe_2000,swe_2500,swe_3000,swe_3500,swe_4000  = make_swelists(basin,scenario,dataname)                                                                   
             swees = [swe_500,swe_1000,swe_1500,swe_2000,swe_2500,swe_3000,swe_3500,swe_4000]
             elevations = [500,1000,1500,2000,2500,3000,3500,4000]
@@ -142,13 +144,19 @@ for basin in basins:
                     ## y value
                     elevmet,cr = find_elevmet(scenario,dataname,swe_array,elevation)
                     meanswe,minswe,maxswe,swe10,swe90,xmin,xmax,xmid = swe_stats(swe_array)
-                    ax.plot(xmin,np.ones(len(xmin))*elevmet,color=cr,linestyle='--',linewidth=lw)
-                    ax.plot(xmax,np.ones(len(xmax))*elevmet,color=cr,linestyle='--',linewidth=lw) 
-                    ax.plot(xmid,np.ones(len(xmid))*elevmet,color=cr,linestyle='-',linewidth=lw) 
-                    ax.plot(meanswe,elevmet,'o',color=cr) 
+		    if (scenn == 'rcp85') and (basin == "cascades") and (elevation == 2000):
+                    	ax.plot(xmin,np.ones(len(xmin))*elevmet,color=cr,label=legendname,linestyle='--',linewidth=lw)
+                    	ax.plot(xmax,np.ones(len(xmax))*elevmet,color=cr,linestyle='--',linewidth=lw) 
+                    	ax.plot(xmid,np.ones(len(xmid))*elevmet,color=cr,linestyle='-',linewidth=lw)
+			ax.legend()  
+		    else:
+			ax.plot(xmin,np.ones(len(xmin))*elevmet,color=cr,linestyle='--',linewidth=lw)
+                    	ax.plot(xmax,np.ones(len(xmax))*elevmet,color=cr,linestyle='--',linewidth=lw) 
+                    	ax.plot(xmid,np.ones(len(xmid))*elevmet,color=cr,linestyle='-',linewidth=lw) 
+                    ax.plot(meanswe,elevmet,'o',color=cr)
                     ax.plot(swe10,elevmet,'s',color=cr)
                     ax.plot(swe90,elevmet,'s',color=cr)
-                    elev_conn[0,scennum,swenum] = elevmet
+		    elev_conn[0,scennum,swenum] = elevmet
                     elev_conn[1,scennum,swenum] = elevmet
                     elev_conn[2,scennum,swenum] = elevmet
                     swe_conn[0,scennum,swenum] = meanswe
@@ -172,17 +180,20 @@ for basin in basins:
                     ax.fill_betweenx(elevminsorted[swemeansorted > nn],swemeansorted[swemeansorted > nn], swemaxsorted[swemeansorted > nn], facecolor='skyblue',alpha=0.4)
         	'''
 	if (basin == "cascades") and (scenn == "rcp85"):
-		ax.set_title('RCP 8.5',size=15) 
-		import matplotlib.patches as mpatches
-		red_p = mpatches.Patch(color='red',label='Historical')
-		green_p = mpatches.Patch(color='g',label='2010-2039')
-		blue_p = mpatches.Patch(color='b',label='2040-2069')
-		mag_p = mpatches.Patch(color='m',label='2070-2099') 
-		ax.legend(handles=[red_p,green_p,blue_p,mag_p]) 
-	elif (basin == "cascades") and (scenn == "rcp45"):
+		ax.set_title('RCP 8.5',size=15)  
+	if (basin == "cascades") and (scenn == "rcp45"):
 		ax.set_title('RCP 4.5',size=15) 
+
 	count += 1
-    
+
+import matplotlib.patches as mpatches
+red_p = mpatches.Patch(color='red',label='Historical')
+green_p = mpatches.Patch(color='g',label='2010-2039')
+blue_p = mpatches.Patch(color='b',label='2040-2069')
+mag_p = mpatches.Patch(color='m',label='2070-2099')
+#ax.legend(loc='upper right',shadow=True,handles=[red_p,green_p,blue_p,mag_p]) 
+
+plt.legend(handles=[red_p,green_p,blue_p,mag_p],loc=2) 
     
 # In[ ]:
 plotname = 'zz_elevs_swe_shaded'
