@@ -171,7 +171,7 @@ sm_minstor_area = np.ma.multiply(sm_in_storage,cellareas)*0.000001 ## also conve
 ## sum over grid cells
 #sm_sum = sm_minstor_area.sum(axis=(1,2)) 
 sm_sum = sm_in_storage.sum(axis=(1,2))*0.000001
-
+sm_full = sm_in_storage*0.000001
 ##### save arrays to files
 if (type == "ensavg"):
 	filearrayname = '/raid9/gergel/agg_snowpack/sm_summer/%s_%s.npz' %(basin,scenario)
@@ -181,7 +181,7 @@ else:
 	else:
 		filearrayname = '/raid9/gergel/agg_snowpack/sm_summer/%s_%s_%s.npz' %(basin,model,scenario)
 
-np.savez(filearrayname,sm=np.asarray(sm_sum) )
+np.savez(filearrayname,sm=np.asarray(sm_sum),sm_f=np.asarray(sm_full))
 
 if (type == "ensavg"):
 	print("finished running script successfully for %s %s" %(basin,scenario))  
