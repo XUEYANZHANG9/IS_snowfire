@@ -194,18 +194,22 @@ for basin in basins:
 				ax.plot(xmax,np.ones(len(xmax))*elevmet,color=colours[count],linestyle='--',linewidth=lw)
 				## 10-90 range
 				xmid = np.arange(swe10,swe90,1)
-				if (count == 0):
+				if (count == 0) and (count1 == 7):
 					ax.plot(xmid,np.ones(len(xmid))*elevmet,label='Simulated',color=colours[count],linestyle='-',linewidth=lw)
 					ax.plot(meanswe,elevmet,'o',label='Mean Simulated',color=colours[count])
 					ax.plot(swe10,elevmet,'s',label='Simulated 10th Percentile',color=colours[count])
 					ax.plot(swe90,elevmet,'s',label='Simulated 90th Percentile',color=colours[count])
-				else:
+				elif (count == 1) and (count1 == 7):
 					ax.plot(xmid,np.ones(len(xmid))*elevmet,label='Observed',color=colours[count],linestyle='-',linewidth=lw)
 					ax.plot(meanswe,elevmet,'o',label='Mean Observed',color=colours[count])
 					ax.plot(swe10,elevmet,'s',label='Observed 10th Percentile',color=colours[count])
 					ax.plot(swe90,elevmet,'s',label='Observed 90th Percentile',color=colours[count])
-				
-				if (basin == "whites") and (count1 == 2):
+				else:
+					ax.plot(xmid,np.ones(len(xmid))*elevmet,color=colours[count],linestyle='-',linewidth=lw)
+                                        ax.plot(meanswe,elevmet,'o',color=colours[count])
+                                        ax.plot(swe10,elevmet,'s',color=colours[count])
+                                        ax.plot(swe90,elevmet,'s',color=colours[count])
+				if (basin == "whites") and (count1 == 7):
 					ax.legend(loc='lower right') 
 				
 				count += 1
@@ -232,7 +236,16 @@ for basin in basins:
 	else:
 		ax.set_xticks([0,1500,3000,4500])  
 
-	#plt.title('April 1 SWE in %s' %basin) 
+	if (basin == "california"):
+		ax.set_title('Sierra Nevada')
+	elif (basin == "cascades"):
+		ax.set_title('Cascades')
+	elif (basin == "northernrockies"):
+		ax.set_title('Northern Rockies')
+	elif (basin == "southernrockies"):
+		ax.set_title('Southern Rockies')
+	else:
+		ax.set_title('White Mountains') 
 	#plt.legend()
 	num += 1 
 # fig.legend(handles=[red_patch,green_patch],loc=2) 
