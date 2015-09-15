@@ -182,9 +182,13 @@ for basin in basins:
 	if (basin == "cascades") and (scenn == "rcp85"):
 		ax.set_title('RCP 8.5',size=15)  
 	if (basin == "cascades") and (scenn == "rcp45"):
-		ax.set_title('RCP 4.5',size=15) 
+		ax.set_title('RCP 4.5',size=15) 		
 
 	count += 1
+
+## add axes labels
+fig.text(0.045, 0.5, 'Elevation [m]', va='center', rotation='vertical',size = 'x-large')
+fig.text(0.5, 0.05, 'SWE [mm]', va='center', rotation='horizontal',size = 'x-large')
 
 import matplotlib.patches as mpatches
 red_p = mpatches.Patch(color='red',label='Historical')
