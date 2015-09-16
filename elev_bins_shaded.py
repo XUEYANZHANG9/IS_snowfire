@@ -203,7 +203,7 @@ plt.legend(handles=[red_p,green_p,blue_p,mag_p],loc=2)
 plotname = 'zz_elevs_swe_shaded'
 direc='/raid9/gergel/agg_snowpack/plots/'
 savepath = os.path.join(direc,plotname)
-plt.savefig(savepath)
+plt.savefig(savepath,dpi=1000)
 print("plot successfully saved")
 
 
