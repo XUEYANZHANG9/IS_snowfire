@@ -85,52 +85,80 @@ lats_swe,lons_swe,hist_noswe,datess_swe = unpack_netcdf_file_var(direc,filename_
 ## masking for lowlands 
 if (basin == "nwinterior") or (basin == "missouri") or (basin == "coastalnorth") or (basin == "coastalsouth") or (basin == "lower_colorado") or (basin == "great_basin"):
 	
-	sm_swe_mask = np.ma.logical_and(hist_noswe,sm) ## mask with no swe mask  
-	sm_swe_mask_hist = np.ma.logical_and(hist_noswe,sm_hist) ## mask with no swe mask 
+	if (basin == "coastalnorth"):
+		sm_swe_mask = np.ma.logical_and(hist_noswe,sm) ## mask with no swe mask  
+		sm_swe_mask_hist = np.ma.logical_and(hist_noswe,sm_hist) ## mask with no swe mask 
 
-	sm_masked = np.ma.masked_array(sm,mask=np.logical_not(sm_swe_mask)) 
-	sm_hist_masked = np.ma.masked_array(sm_hist,mask=np.logical_not(sm_swe_mask_hist)) 
+		sm_masked = np.ma.masked_array(sm,mask=np.logical_not(sm_swe_mask)) 
+		sm_hist_masked = np.ma.masked_array(sm_hist,mask=np.logical_not(sm_swe_mask_hist)) 
 	
-	a,b,c = sm_masked.shape
+		a,b,c = sm_masked.shape
 	
-	sm_masked_res = sm_masked.reshape(3,a/3,b,c) 
-	sm_hist_masked_res = sm_hist_masked.reshape(3,56,b,c) 
+		sm_masked_res = sm_masked.reshape(3,a/3,b,c) 
+		sm_hist_masked_res = sm_hist_masked.reshape(3,56,b,c) 
 	
-	sm_hist_final = sm_hist_masked_res.mean(0) 
-	sm_final = sm_masked_res.mean(0)
+	else: 
+		a,b,c = sm.shape
+		sm_masked_res = sm.reshape(3,a/3,b,c)
+		sm_hist_masked_res = sm_hist.reshape(3,56,b,c) 
+
+	sm_hist_f = sm_hist_masked_res.mean(0) 
+	sm_f = sm_masked_res.mean(0)
+	
+	if (basin == "coastalnorth"):
+		sm_hist_final = sm_hist_f
+		sm_final = sm_f 
 
 	### additional masking 
 	if (basin == "nwinterior"):
 		file = '/raid9/gergel/agg_snowpack/sm_summer/nwinterior.npz'
 		data = np.load(file)
-		nwint = data['nwinterior']
-		sm_hist_final = sm_hist_final*nwint
-		sm_final = sm_final*nwint 
+		basin_bool = data['nwinterior']
+		#sm_hist_final = sm_hist_final*nwint
+		#sm_final = sm_final*nwint 
 	elif (basin == "coastalsouth"):
 		file = '/raid9/gergel/agg_snowpack/sm_summer/nwinterior.npz'
                 data = np.load(file)
-		cs = data['cs']
-                sm_hist_final = sm_hist_final*cs
-                sm_final = sm_final*cs
+		basin_bool = data['cs']
+                #sm_hist_final = sm_hist_final*cs
+                #sm_final = sm_final*cs
 	elif (basin == "missouri"):
 		file = '/raid9/gergel/agg_snowpack/sm_summer/masks.npz'
 		data = np.load(file)
-		mo = data['mo']
-		sm_hist_final = sm_hist_final*mo
-		sm_final = sm_final*mo
+		basin_bool = data['mo']
+		#sm_hist_final = sm_hist_final*mo
+		#sm_final = sm_final*mo
 	elif (basin == "lower_colorado"):
 		file = '/raid9/gergel/agg_snowpack/sm_summer/masks.npz'
 		data = np.load(file)
-		lc = data['lc']
-		sm_hist_final = sm_hist_final*lc
-		sm_final = sm_final*lc
+		basin_bool = data['lc']
+		#sm_hist_final = sm_hist_final*lc
+		#sm_final = sm_final*lc
 	elif (basin == "great_basin"):
 		file = '/raid9/gergel/agg_snowpack/sm_summer/masks.npz'
 		data = np.load(file)
-		gb = data['gb']
-		sm_hist_final = sm_hist_final*gb
-		sm_final = sm_final*gb 
+		basin_bool = data['gb']
+		#sm_hist_final = sm_hist_final*gb
+		#sm_final = sm_final*gb 
 	
+	## additional masking for everything but Coastal North
+	if (basin != "coastalnorth"):
+		## scenario mask 
+		for i in np.arange(len(sm_f)):
+			for j in np.arange(len(lats)):
+				for k in np.arange(len(lons)):
+					if basin_bool[j,k] == 0:
+						sm_f[i,j,k] = -10000
+
+		for i in np.arange(len(sm_hist_f)):	
+			for j in np.arange(len(lats)):
+				for k in np.arange(len(lons)):
+					if basin_bool[j,k] == 0:
+						sm_hist_f[i,j,k] = -10000
+		
+		## finish masking
+		sm_final = np.ma.masked_equal(np.asarray(sm_f),-10000)
+		sm_hist_final = np.ma.masked_equal(np.asarray(sm_hist_f),-10000) 
 ## masking for uplands
 else: 
 	## mask sm with > 10 mm historical mean SWE
