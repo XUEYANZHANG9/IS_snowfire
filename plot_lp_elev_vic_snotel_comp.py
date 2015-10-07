@@ -174,7 +174,7 @@ for basin in basins:
 			sim = swearr[:,0]
 			obs = swearr[:,1] 
 			simobs = [sim,obs] 
-			colours = ['r','g'] 
+			colours = ['b','k'] 
 			count = 0
 			for so in simobs: 
 				meanswe = np.mean(so)
@@ -253,5 +253,5 @@ plot_direc = '/raid9/gergel/agg_snowpack/snotel_vic/plots'
 plotname = 'binned_allbasins_april1swe' 
 savepath = os.path.join(plot_direc,plotname)
 print("saving figure to '%s'" %savepath)
-plt.savefig(savepath,dpi=1000) 
+plt.savefig(savepath,dpi=300) 
 
