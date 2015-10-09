@@ -1,19 +1,20 @@
 #!/bin/bash
 
 #types="ensavg eachgcm" 
-basins="cascades california northernrockies southernrockies whites nwinterior coastalnorth coastalsouth missouri lower_colorado great_basin" 
-#basins="nwinterior coastalnorth coastalsouth missouri lower_colorado great_basin" 
+#basins="cascades california northernrockies southernrockies whites nwinterior coastalnorth coastalsouth missouri lower_colorado great_basin" 
+basins="coastalnorth nwinterior coastalsouth missouri lower_colorado great_basin" 
 models="NorESM1-M CNRM-CM5 CSIRO-Mk3-6-0 CanESM2 MIROC5 bcc-csm1-1-m HadGEM2-CC365 HadGEM2-ES365 CCSM4 IPSL-CM5A-MR"
 scenarios="historical rcp45 rcp85"
-seasons="mam jja" 
+#seasons="mam jja" 
 
 types="eachgcm"
-#basins="cascades"
+#basins="coastalnorth"
 #models="IPSL-CM5A-MR"
 #scenarios="rcp45"
-#seasons="mam"
+seasons="mam"
 
 ################################ SET VARIABLE ########################
+## variables: TotalSoilMoist,pr,tasmin,tasmax
 variable="pr"
 ######################################################################
 
@@ -42,7 +43,7 @@ do
                         ## loop over scenarios
                         for scenario in $scenarios
                         do
-				if [ "$variable" = "pr" ]
+				if [ "$variable" = "pr" ] || [ "$variable" = "tasmax" ] || [ "$variable" = "tasmin" ]
 				then
 				for season in $seasons
 				do

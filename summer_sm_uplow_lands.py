@@ -47,6 +47,10 @@ if (model == "CCSM4"):
 	modnum = "r6i1p1"
 else:
 	modnum = "r1i1p1"
+if (variable == "pr"):
+	monthcalc = "monsum"
+else:
+	monthcalc = "monmean"
 
 ## import data 
 #direc = '/raid9/gergel/agg_snowpack/goodleap/%s' %basin 
@@ -60,8 +64,8 @@ if (variable == "TotalSoilMoist"):
 	filename_hist = '%s__%s.monmean.TotalSoilMoist.%s_%s_summer.nc' % (model,"historical","1950_2005",basin)
 	filename = '%s__%s.monmean.TotalSoilMoist.%s_%s_summer.nc' % (model,scenario,years,basin)
 else:
-	filename_hist = '%s__%s.monsum.%s.%s_%s_%s.nc' % (model,"historical",variable,"1950_2005",basin,season)
-        filename = '%s__%s.monsum.%s.%s_%s_%s.nc' % (model,scenario,variable,years,basin,season)
+	filename_hist = '%s__%s.%s.%s.%s_%s_%s.nc' % (model,"historical",monthcalc,variable,"1950_2005",basin,season)
+        filename = '%s__%s.%s.%s.%s_%s_%s.nc' % (model,scenario,monthcalc,variable,years,basin,season)
 
 ## load data
 if (variable == "TotalSoilMoist"):
@@ -91,108 +95,111 @@ if (basin == "nwinterior") or (basin == "missouri") or (basin == "coastalnorth")
 	else:
 		mos = 3
 
-	if (basin == "coastalnorth"):
-		sm_swe_mask = np.ma.logical_and(hist_noswe,sm) ## mask with no swe mask  
-		sm_swe_mask_hist = np.ma.logical_and(hist_noswe,sm_hist) ## mask with no swe mask 
-
-		sm_masked = np.ma.masked_array(sm,mask=np.logical_not(sm_swe_mask)) 
-		sm_hist_masked = np.ma.masked_array(sm_hist,mask=np.logical_not(sm_swe_mask_hist)) 
-	
-		a,b,c = sm_masked.shape
-	
-		sm_masked_res = sm_masked.reshape(mos,a/mos,b,c) 
-		sm_hist_masked_res = sm_hist_masked.reshape(mos,56,b,c) 
-	
-	else: 
-		a,b,c = sm.shape
-		sm_masked_res = sm.reshape(mos,a/mos,b,c)
-		sm_hist_masked_res = sm_hist.reshape(mos,56,b,c) 
+	a,b,c = sm.shape
+	sm_res = sm.reshape(mos,a/mos,b,c)
+	sm_hist_res = sm_hist.reshape(mos,56,b,c) 
 
 	if (variable == "pr"):
-		sm_hist_f = sm_hist_masked_res.sum(0) 
-        	sm_f = sm_masked_res.sum(0)
-	else:
-		sm_hist_f = sm_hist_masked_res.mean(0) 
-		sm_f = sm_masked_res.mean(0)
-	
+                sm_hist_res = sm_hist_res.sum(0)
+                sm_res = sm_res.sum(0)
+        else:
+                sm_hist_res = sm_hist_res.mean(0)
+                sm_res = sm_res.mean(0)
+
 	if (basin == "coastalnorth"):
-		sm_hist_final = sm_hist_f
-		sm_final = sm_f 
+		#sm_swe_mask = np.ma.logical_and(hist_noswe,sm) ## mask with no swe mask  
+		#sm_swe_mask_hist = np.ma.logical_and(hist_noswe,sm_hist) ## mask with no swe mask 
+
+		#_masked = np.ma.masked_array(sm,mask=np.logical_not(sm_swe_mask)) 
+		#sm_hist_masked = np.ma.masked_array(sm_hist,mask=np.logical_not(sm_swe_mask_hist))  
+
+		## set zero values to -10000
+		for i in np.arange(len(sm_res)):
+			for j in np.arange(len(lats)):
+				for k in np.arange(len(lons)):
+					if hist_noswe[0,j,k] == 0 or sm_res.mask[i,j,k] == 1:
+						sm_res[i,j,k] = -10000
+
+		for i in np.arange(len(sm_hist_res)):
+			for j in np.arange(len(lats)):
+				for k in np.arange(len(lons)):
+					if hist_noswe[0,j,k] == 0 or sm_hist_res.mask[i,j,k] == 1:
+						sm_hist_res[i,j,k] = -10000
+
+		## set -10000 values to be masked
+		sm_final = np.ma.masked_equal(np.asarray(sm_res),-10000)
+		sm_hist_final = np.ma.masked_equal(np.asarray(sm_hist_res),-10000) 
 
 	### additional masking 
 	if (basin == "nwinterior"):
 		file = '/raid9/gergel/agg_snowpack/sm_summer/nwinterior.npz'
 		data = np.load(file)
-		basin_bool = data['nwinterior']
-		#sm_hist_final = sm_hist_final*nwint
-		#sm_final = sm_final*nwint 
+		basin_bool = data['nwinterior'] 
 	elif (basin == "coastalsouth"):
 		file = '/raid9/gergel/agg_snowpack/sm_summer/nwinterior.npz'
                 data = np.load(file)
 		basin_bool = data['cs']
-                #sm_hist_final = sm_hist_final*cs
-                #sm_final = sm_final*cs
 	elif (basin == "missouri"):
 		file = '/raid9/gergel/agg_snowpack/sm_summer/masks.npz'
 		data = np.load(file)
 		basin_bool = data['mo']
-		#sm_hist_final = sm_hist_final*mo
-		#sm_final = sm_final*mo
 	elif (basin == "lower_colorado"):
 		file = '/raid9/gergel/agg_snowpack/sm_summer/masks.npz'
 		data = np.load(file)
 		basin_bool = data['lc']
-		#sm_hist_final = sm_hist_final*lc
-		#sm_final = sm_final*lc
 	elif (basin == "great_basin"):
 		file = '/raid9/gergel/agg_snowpack/sm_summer/masks.npz'
 		data = np.load(file)
-		basin_bool = data['gb']
-		#sm_hist_final = sm_hist_final*gb
-		#sm_final = sm_final*gb 
+		basin_bool = data['gb'] 
 	
 	## additional masking for everything but Coastal North
 	if (basin != "coastalnorth"):
 		## scenario mask 
-		for i in np.arange(len(sm_f)):
+		for i in np.arange(len(sm_res)):
 			for j in np.arange(len(lats)):
 				for k in np.arange(len(lons)):
 					if basin_bool[j,k] == 0:
-						sm_f[i,j,k] = -10000
+						sm_res[i,j,k] = -10000
 
-		for i in np.arange(len(sm_hist_f)):	
+		for i in np.arange(len(sm_hist_res)):	
 			for j in np.arange(len(lats)):
 				for k in np.arange(len(lons)):
 					if basin_bool[j,k] == 0:
-						sm_hist_f[i,j,k] = -10000
+						sm_hist_res[i,j,k] = -10000
 		
 		## finish masking
-		sm_final = np.ma.masked_equal(np.asarray(sm_f),-10000)
-		sm_hist_final = np.ma.masked_equal(np.asarray(sm_hist_f),-10000) 
+		sm_final = np.ma.masked_equal(np.asarray(sm_res),-10000)
+		sm_hist_final = np.ma.masked_equal(np.asarray(sm_hist_res),-10000) 
 ## masking for uplands
 else: 
-	## mask sm with > 10 mm historical mean SWE
-	sm_swe_mask = np.ma.logical_and(hist_swe_mod,sm) ## mask with swe mask 
-	sm_swe_mask_hist = np.ma.logical_and(hist_swe_mod,sm_hist) ## mask with swe mask 
-	
-	sm_masked_full = np.ma.masked_array(sm,mask=np.logical_not(sm_swe_mask))
-        sm_hist_masked_full = np.ma.masked_array(sm_hist,mask=np.logical_not(sm_swe_mask_hist))
+	a,b,c = sm.shape	
 
-	
-	#sm_masked_full = np.ma.masked_array(sm,mask=hist_swe_mod) 
-	#sm_hist_masked_full = np.ma.masked_array(sm_hist,mask=hist_swe_mod) 	
+	sm_res = sm.reshape(mos,a/mos,b,c) 
+	sm_hist_res = sm_hist.reshape(mos,56,b,c)
 
-	a,b,c = sm_masked_full.shape
-	
-	sm_masked_res = sm_masked_full.reshape(mos,a/mos,b,c) 
-	sm_hist_masked_res = sm_hist_masked_full.reshape(mos,56,b,c)
+	## mask variable with > 10 mm historical mean SWE 
+
+	for i in np.arange(len(sm_res)):
+		for j in np.arange(len(lats)):
+			for k in np.arange(len(lons)):
+				if hist_swe_mod[j,k] == 0:
+					sm_res[i,j,k] = -10000
+
+	for i in np.arange(len(sm_hist_res)):
+		for j in np.arange(len(lats)):
+			for k in np.arange(len(lons)):
+				if hist_swe_mod[j,k] == 0:
+					sm_hist_res[i,j,k] = -10000
+
+	sm_masked = np.ma.masked_equal(np.asarray(sm_res),-10000) ## mask all values equal to -10000
+	sm_hist_masked = np.ma.masked_equal(np.asarray(sm_hist_res),-10000) ## mask all values equal to -10000 
 	
 	if (variable == "pr"):
-		sm_hist_final = sm_hist_masked_res.sum(0) 
-        	sm_final = sm_masked_res.sum(0)
+		sm_hist_final = sm_hist_masked.sum(0) 
+        	sm_final = sm_masked.sum(0)
 	else: 
-		sm_hist_final = sm_hist_masked_res.mean(0) 
-        	sm_final = sm_masked_res.mean(0) 
+		sm_hist_final = sm_hist_masked.mean(0) 
+        	sm_final = sm_masked.mean(0) 
 
 	
 
@@ -210,20 +217,17 @@ cellareas = create_gridcell_area_array(arr_for_areas,latss,lonss)
 sm_minstor_area = np.ma.multiply(sm_in_storage,cellareas)*0.000001 ## also convert units
 '''
 ## sum over grid cells
-#sm_sum = sm_minstor_area.sum(axis=(1,2)) 
-sm_sum = sm_in_storage.sum(axis=(1,2))*0.000001
-sm_full = sm_in_storage*0.000001
+sm_sum = sm_in_storage.sum(axis=(1,2))*0.000001 ## convert soil moisture storage total to km 
+sm_full = sm_in_storage ## keep sm in mm
 
 ## for precip and temp analysis
-if (scenario == "historical"):
-	if (basin == "missouri") or (basin == "lower_colorado") or (basin == "great_basin") or (basin == "coastalnorth") or (basin == "coastalsouth") or (basin == "nwinterior"):
+if (variable == "pr") or (variable == "tasmin") or (variable == "tasmax"):
+	if (scenario == "historical"):
 		var = sm_final[19:-7,:,:].mean(0).compressed()
 	else:
-		maskk = 
-else:
-	var1 = sm_final[3:33,:,:].mean(0).compressed()
-	var2 = sm_final[33:63,:,:].mean(0).compressed()
-	var3 = sm_final[63:93,:,:].mean(0).compressed()
+		var1 = sm_final[3:33,:,:].mean(0).compressed()
+		var2 = sm_final[33:63,:,:].mean(0).compressed()
+		var3 = sm_final[63:93,:,:].mean(0).compressed()
 ##### save arrays to files
 if (type == "ensavg"):
 	filearrayname = '/raid9/gergel/agg_snowpack/sm_summer/%s_%s.npz' %(basin,scenario)

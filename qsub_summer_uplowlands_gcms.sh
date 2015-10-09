@@ -3,14 +3,14 @@
 #$ -cwd
 #$ -j y
 #$ -S /bin/bash
-#$ -q default.q@compute-0-2.local 
-#$ -N sm_gcms
+#$ -q default.q
+#$ -N lowlands
 
 
 ##-------------------------------------------------
 
 ################## sum up SWE 
-if [ "$variable" = "pr" ]
+if [ "$variable" = "pr" ] || [ "$variable" = "tasmax" ] || [ "$variable" = "tasmin" ]
 then
 python /raid9/gergel/agg_snowpack/summer_sm_uplow_lands.py $type $variable $basin $model $scenario $season
 else
