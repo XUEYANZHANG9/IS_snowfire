@@ -95,6 +95,10 @@ def unpack_netcdf_file_var(direc,file,var):
 		varinfile = "SoilMoist"
         elif (var == "pr"):
 		varinfile = "precipitation"
+	elif (var == "tasmin"):
+		varinfile = "air_temp_min"
+	elif (var == "tasmax"):
+		varinfile = "air_temp_max"
 	else:
                 varinfile = var
         lons = fh.variables['Longitude'][:]
@@ -435,7 +439,7 @@ def find_idx(v,arrmin,delta):
 
 def make_map():
 	from mpl_toolkits.basemap import Basemap 
-        m=Basemap(llcrnrlon=-125,llcrnrlat=31,urcrnrlon = -104.5,urcrnrlat=50,projection='cyl',lat_1=33,lat_2=42,lon_0=-110,
+        m=Basemap(llcrnrlon=-125,llcrnrlat=31,urcrnrlon = -102.5,urcrnrlat=50,projection='cyl',lat_1=33,lat_2=42,lon_0=-110,
                 resolution='c')
         m.drawcoastlines()
         m.drawstates()
@@ -468,9 +472,9 @@ def mask_out_other_mtns(lat,lon):
         	return False
     	elif lon > -119.75 and lon < -114 and lat > 39 and lat < 43.1:
         	return False
-    	elif lon > -117.6 and lon < -114 and lat > 30 and lat < 39:
-        	return False
-    	elif lat > 31.5 and lat < 37 and lon > -114 and lon < -111:
+    	elif lat > 30 and lat < 39 and lon > -117.6 and lon < -114:
+		return False 
+	elif lat > 31.5 and lat < 37 and lon > -114 and lon < -111:
         	return False
     	## oregon
     	elif lat < 46 and lat > 43 and lon > -121 and lon < -117:
@@ -503,4 +507,49 @@ def mask_out_other_mtns(lat,lon):
     	elif lat > 38.5 and lon > -104.5:
         	return False
     	else:
-        	return True 
+        	return True
+
+def mask_out_mtns_vf(arr,lat,lon):
+        if lon < -122 and lat < 40.7:
+                return np.nan
+        elif lon < -123:
+                return np.nan
+        elif lon > -119.75 and lon < -114 and lat > 39 and lat < 43.1:
+                return np.nan
+        elif lat > 30 and lat < 39 and lon > -117.6 and lon < -114:
+                return np.nan
+        elif lat > 31.5 and lat < 37 and lon > -114 and lon < -111:
+                return np.nan
+        ## oregon
+        elif lat < 46 and lat > 43 and lon > -121 and lon < -117:
+                return np.nan
+        ## utah
+        elif lat > 37 and lat < 39 and lon > -114 and lon < -109:
+                return np.nan
+        elif lat > 39 and lat < 42 and lon > -114 and lat < -112:
+                return np.nan
+        elif lat < 35 and lon < -117:
+                return np.nan
+        elif lat > 43 and lat < 44 and lon > -117 and lon < -116:
+                return np.nan
+        elif lat > 42 and lat < 49 and lon > -108 and lon < -103:
+                return np.nan
+        elif lat < 33:
+                return np.nan
+        elif lat < 35.5 and lon > -108.75:
+                return np.nan
+        elif lat > 45 and lon > -109:
+                return np.nan
+        elif lat > 48 and lon > -110:
+                return np.nan
+        elif lat > 35 and lat < 37 and lon < -108 and lon > -111:
+                return np.nan
+        elif lon > -114 and lon < -113 and lat > 37 and lat < 43:
+                return np.nan
+        elif lat > 45 and lat < 47 and lon > -118.25 and lon < -117:
+                return np.nan
+        elif lat > 38.5 and lon > -104.5:
+                return np.nan
+        else:
+		return arr
+ 
