@@ -86,6 +86,10 @@ hist_swe_mod = create_mask_mtn_ranges(hist_swe,lats_swe,lons_swe)
 lats_swe,lons_swe,hist_noswe,datess_swe = unpack_netcdf_file_var(direc,filename_lowlands,"swe") 
 
 ####################################################################################################
+## get lats and lons for pr and temp
+lats_inc = list()
+lons_inc = list()
+
 ## masking for lowlands 
 if (basin == "nwinterior") or (basin == "missouri") or (basin == "coastalnorth") or (basin == "coastalsouth") or (basin == "lower_colorado") or (basin == "great_basin"):
 	
@@ -119,6 +123,10 @@ if (basin == "nwinterior") or (basin == "missouri") or (basin == "coastalnorth")
 				for k in np.arange(len(lons)):
 					if hist_noswe[0,j,k] == 0 or sm_res.mask[i,j,k] == 1:
 						sm_res[i,j,k] = -10000
+					else:
+						if i < 1:
+							lats_inc.append(lats[j])
+							lons_inc.append(lons[k]) 
 
 		for i in np.arange(len(sm_hist_res)):
 			for j in np.arange(len(lats)):
@@ -158,13 +166,17 @@ if (basin == "nwinterior") or (basin == "missouri") or (basin == "coastalnorth")
 		for i in np.arange(len(sm_res)):
 			for j in np.arange(len(lats)):
 				for k in np.arange(len(lons)):
-					if basin_bool[j,k] == 0:
+					if basin_bool[j,k] == 0 or sm_res.mask[i,j,k] == 1 or hist_noswe[0,j,k] == 0 or lats[j] > 49:
 						sm_res[i,j,k] = -10000
+					else:
+						if i < 1:
+							lats_inc.append(lats[j])
+							lons_inc.append(lons[k]) 
 
 		for i in np.arange(len(sm_hist_res)):	
 			for j in np.arange(len(lats)):
 				for k in np.arange(len(lons)):
-					if basin_bool[j,k] == 0:
+					if basin_bool[j,k] == 0 or sm_hist_res.mask[i,j,k] == 1 or hist_noswe[0,j,k] == 0 or lats[j] > 49:
 						sm_hist_res[i,j,k] = -10000
 		
 		## finish masking
@@ -241,9 +253,9 @@ if (variable == "TotalSoilMoist"):
 	np.savez(filearrayname,sm=np.asarray(sm_sum),sm_f=np.asarray(sm_full))
 else:
 	if (scenario == "historical"):
-		np.savez(filearrayname,var=var)
+		np.savez(filearrayname,var=var,lats=np.asarray(lats_inc),lons=np.asarray(lons_inc))
 	else:
-		np.savez(filearrayname,chunk1=var1,chunk2=var2,chunk3=var3)
+		np.savez(filearrayname,chunk1=var1,chunk2=var2,chunk3=var3,lats=np.asarray(lats_inc),lons=np.asarray(lons_inc))
 
 
 if (type == "ensavg"):
