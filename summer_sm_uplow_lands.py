@@ -200,29 +200,29 @@ else:
 	sm_res = sm.reshape(mos,a/mos,b,c) 
 	sm_hist_res = sm_hist.reshape(mos,56,b,c)
 
+	if (variable == "pr"):
+                sm_hist_res = sm_hist_res.sum(0)
+                sm_res = sm_res.sum(0)
+        else:
+                sm_hist_res = sm_hist_res.mean(0)
+                sm_res = sm_res.mean(0)
+
 	## mask variable with > 10 mm historical mean SWE 
 
 	for i in np.arange(len(sm_res)):
 		for j in np.arange(len(lats)):
 			for k in np.arange(len(lons)):
-				if hist_swe_mod[j,k] == 0:
+				if hist_swe_mod[0,j,k] == 0:
 					sm_res[i,j,k] = -10000
 
 	for i in np.arange(len(sm_hist_res)):
 		for j in np.arange(len(lats)):
 			for k in np.arange(len(lons)):
-				if hist_swe_mod[j,k] == 0:
+				if hist_swe_mod[0,j,k] == 0:
 					sm_hist_res[i,j,k] = -10000
 
-	sm_masked = np.ma.masked_equal(np.asarray(sm_res),-10000) ## mask all values equal to -10000
-	sm_hist_masked = np.ma.masked_equal(np.asarray(sm_hist_res),-10000) ## mask all values equal to -10000 
-	
-	if (variable == "pr"):
-		sm_hist_final = sm_hist_masked.sum(0) 
-        	sm_final = sm_masked.sum(0)
-	else: 
-		sm_hist_final = sm_hist_masked.mean(0) 
-        	sm_final = sm_masked.mean(0) 
+	sm_final = np.ma.masked_equal(np.asarray(sm_res),-10000) ## mask all values equal to -10000
+	sm_hist_final = np.ma.masked_equal(np.asarray(sm_hist_res),-10000) ## mask all values equal to -10000 
 
 	
 
