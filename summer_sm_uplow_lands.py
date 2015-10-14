@@ -192,6 +192,11 @@ if (basin == "nwinterior") or (basin == "missouri") or (basin == "coastalnorth")
 else: 
 	a,b,c = sm.shape	
 
+	if (season == "winter"):
+                mos = 5
+        else:
+                mos = 3
+
 	sm_res = sm.reshape(mos,a/mos,b,c) 
 	sm_hist_res = sm_hist.reshape(mos,56,b,c)
 
