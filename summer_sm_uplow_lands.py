@@ -39,6 +39,8 @@ else:
 	scenario = args[4] 
 if (variable == "pr") or (variable == "tasmin") or (variable == "tasmax"):
 	season = args[5]
+else:
+	season = "summer"
 if (scenario == "historical"):
 	years = "1950_2005"
 else:
@@ -94,6 +96,10 @@ lons_inc = list()
 if (basin == "nwinterior") or (basin == "missouri") or (basin == "coastalnorth") or (basin == "coastalsouth") or (basin == "lower_colorado") or (basin == "great_basin"):
 	
 	## number of months varies depending on winter vs. summer
+	a,b,c = sm.shape
+	print(a)
+	print(b)
+	print(c)
 	if (season == "winter"):
 		mos = 5
 	else:
@@ -231,9 +237,9 @@ sm_minstor_area = np.ma.multiply(sm_in_storage,cellareas)*0.000001 ## also conve
 ## sum over grid cells
 sm_sum = sm_in_storage.sum(axis=(1,2))*0.000001 ## convert soil moisture storage total to km 
 sm_full = sm_in_storage ## keep sm in mm
-
+sm_latslonss = sm_final.mean(0).compressed()
 ## for precip and temp analysis
-if (variable == "pr") or (variable == "tasmin") or (variable == "tasmax"):
+if (variable == "pr") or (variable == "TotalSoilMoist") or (variable == "tasmin") or (variable == "tasmax"):
 	if (scenario == "historical"):
 		var = sm_final[19:-7,:,:].mean(0).compressed()
 	else:
@@ -250,7 +256,10 @@ else:
 		filearrayname = '/raid9/gergel/agg_snowpack/sm_summer/%s_%s_%s.npz' %(basin,model,scenario)
 
 if (variable == "TotalSoilMoist"):
-	np.savez(filearrayname,sm=np.asarray(sm_sum),sm_f=np.asarray(sm_full))
+	if (scenario == "historical"):
+		np.savez(filearrayname,sm=np.asarray(sm_sum),sm_f=np.asarray(sm_full),var=var)
+	else: 
+		np.savez(filearrayname,sm=np.asarray(sm_sum),sm_f=np.asarray(sm_full),chunk1=var1,chunk2=var2,chunk3=var3)
 else:
 	if (scenario == "historical"):
 		np.savez(filearrayname,var=var,lats=np.asarray(lats_inc),lons=np.asarray(lons_inc))
