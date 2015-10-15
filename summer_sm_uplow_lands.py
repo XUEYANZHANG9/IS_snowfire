@@ -227,6 +227,7 @@ else:
 	
 
 #####################################################################################################
+## processing masked data
 ## subtract minimum historical soil moisture in each grid cell from each summer soil moisture average
 sm_minstorage = sm_hist_final.min(0) ## calculate minimum historical soil moisture 
 sm_in_storage = sm_final - sm_minstorage ## subtract minimum historical soil moisture from every point in time series for each grid cell 
