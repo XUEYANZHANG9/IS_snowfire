@@ -242,7 +242,8 @@ sm_minstor_area = np.ma.multiply(sm_in_storage,cellareas)*0.000001 ## also conve
 '''
 ## sum over grid cells
 sm_sum = sm_in_storage.sum(axis=(1,2))*0.000001 ## convert soil moisture storage total to km 
-sm_full = sm_in_storage ## keep sm in mm
+sm_full = sm_in_storage.sum(axis=(1,2)) ## keep sm in mm
+pr_full = sm_final.sum(axis=(1,2)) 
 sm_latslonss = sm_final.mean(0).compressed()
 ## for precip and temp analysis
 if (variable == "pr") or (variable == "TotalSoilMoist") or (variable == "tasmin") or (variable == "tasmax"):
@@ -263,14 +264,14 @@ else:
 
 if (variable == "TotalSoilMoist"):
 	if (scenario == "historical"):
-		np.savez(filearrayname,sm=np.asarray(sm_sum),sm_f=np.asarray(sm_full),var=var)
+		np.savez(filearrayname,sm=np.asarray(sm_sum),sm_f=np.asarray(sm_full)[19:-7],var=var,arr=sm_final)
 	else: 
-		np.savez(filearrayname,sm=np.asarray(sm_sum),sm_f=np.asarray(sm_full),chunk1=var1,chunk2=var2,chunk3=var3)
+		np.savez(filearrayname,sm=np.asarray(sm_sum),sm_f=np.asarray(sm_full),chunk1=var1,chunk2=var2,chunk3=var3,ts1=np.asarray(sm_full)[3:33],ts2=np.asarray(sm_full)[33:63],ts3=np.asarray(sm_full)[63:93],arr=sm_final)
 else:
 	if (scenario == "historical"):
-		np.savez(filearrayname,var=var,lats=np.asarray(lats_inc),lons=np.asarray(lons_inc))
+		np.savez(filearrayname,var=var,lats=np.asarray(lats_inc),lons=np.asarray(lons_inc),var_f=np.asarray(pr_full)[19:-7],arr=sm_final)
 	else:
-		np.savez(filearrayname,chunk1=var1,chunk2=var2,chunk3=var3,lats=np.asarray(lats_inc),lons=np.asarray(lons_inc))
+		np.savez(filearrayname,chunk1=var1,chunk2=var2,chunk3=var3,lats=np.asarray(lats_inc),lons=np.asarray(lons_inc),ts1=np.asarray(pr_full)[3:33],ts2=np.asarray(pr_full)[33:63],ts3=np.asarray(pr_full)[63:93],arr=sm_final)
 
 
 if (type == "ensavg"):
