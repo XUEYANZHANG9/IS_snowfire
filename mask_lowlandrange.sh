@@ -77,23 +77,39 @@ then
 	echo "now processing $inputfile with cdo selmon" 
 	cdo selmon,6,7,8 $inputfile $outputfile 
 
-elif [ "$variable" = "pr" ] && [ "$basin" = "coastalnorth" ] || [ "$basin" = "cascades" ] || [ "$basin" = "california" ] || [ "$basin" = "northernrockies" ] || [ "$basin" = "southernrockies" ] || [ "$basin" = "whites" ] 
+elif [ "$variable" = "pr" ] || [ "$variable" = "tasmax" ] || [ "$variable" = "tasmin" ] && [ "$basin" = "coastalnorth" ] || [ "$basin" = "cascades" ] || [ "$basin" = "california" ] || [ "$basin" = "northernrockies" ] || [ "$basin" = "southernrockies" ] || [ "$basin" = "whites" ] 
 then
 	if [ "$season" = "mam" ]
 	then
 	echo "processing $inputfile with mam"
 	cdo selmon,3,4,5 $inputfile $tmp
+	elif [ "$season" = "jja" ]
+	then
+	echo "processing $inputfile with jja"
+	cdo selmon,6,7,8 $inputfile $tmp
+	elif [ "$season" = "winter" ] 
+	then
+	echo "processing $inputfile with winter"
+	cdo selmon,11,12,1,2,3 $inputfile $tmp 
 	else
 	echo "processing $inputfile with jja"
 	cdo selmon,6,7,8 $inputfile $tmp 
 	fi 
 
-elif [ "$variable" = "pr" ] && [ "$basin" != "coastalnorth" ] 
+elif [ "$variable" = "pr" ] || [ "$variable" = "tasmin" ] || [ "$variable" = "tasmax" ] && [ "$basin" != "coastalnorth" ] 
 then
 	if [ "$season" = "mam" ]
         then
         echo "processing $inputfile with $basin mam"
         cdo selmon,3,4,5 $inputfile $outputfile
+	elif [ "$season" = "jja" ] 
+	then 
+	echo "processing $inputfile with $basin jja" 
+	cdo selmon,6,7,8 $inputfile $outputfile 
+	elif [ "$season" = "winter" ]
+	then
+	echo "processing $inputfile with winter"
+	cdo selmon,11,12,1,2,3 $inputfile $outputfile 
         else
         echo "processing $inputfile with $basin jja"
         cdo selmon,6,7,8 $inputfile $outputfile
