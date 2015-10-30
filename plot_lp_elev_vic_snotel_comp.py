@@ -14,6 +14,11 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt 
 from scipy.stats import nanmean 
 
+################### set fontsize ###############
+fs = 20 ## font size
+ls = 15 ## legend size
+################################################
+
 ## function to get elevation for snotel site 
 def get_snotel_elevation(site_id):
 	snotel_file = '/raid9/gergel/vic_sim_obs/snotel_data/station.info'
@@ -210,7 +215,7 @@ for basin in basins:
                                         ax.plot(swe10,elevmet,'s',color=colours[count])
                                         ax.plot(swe90,elevmet,'s',color=colours[count])
 				if (basin == "whites") and (count1 == 7):
-					ax.legend(loc='lower right') 
+					ax.legend(loc='lower right',prop={'size':ls}) 
 				
 				count += 1
 		count1 += 1
@@ -223,9 +228,9 @@ for basin in basins:
 	#ax.legend(handles=[red_patch,green_patch],bbox_to_anchor=(1.1, 1.05), loc=2)
 	#ax.legend(loc='upper right',handles=[red_patch,green_patch],shadow=True)
 	if (num == 1):
-		ax.set_ylabel('Elevation [m]') 
+		ax.set_ylabel('Elevation [m]',size=fs) 
 	if (num == 3):
-		ax.set_xlabel('SWE [mm]',size=15) 
+		ax.set_xlabel('SWE [mm]',size=fs) 
 	ax.set_ylim([0,3500]) 
 
 	## set x ticks #######
@@ -235,6 +240,12 @@ for basin in basins:
 		ax.set_xticks([0,75,150,225])
 	else:
 		ax.set_xticks([0,1500,3000,4500])  
+	ax.xaxis.set_tick_params(labelsize=fs)	
+
+	## set y ticks #######
+	if (basin != "cascades"): 
+		plt.setp(ax.get_yticklabels(), visible=False)
+		ax.yaxis.set_tick_params(labelsize=fs)		
 
 	if (basin == "california"):
 		ax.set_title('Sierra Nevada')
