@@ -239,7 +239,7 @@ for basin in basins:
 	elif (basin == "whites"):
 		ax.set_xticks([0,75,150,225])
 	else:
-		ax.set_xticks([0,1500,3000,4500])  
+		ax.set_xticks([0,2000,4000])  
 	ax.xaxis.set_tick_params(labelsize=fs)	
 
 	## set y ticks #######
