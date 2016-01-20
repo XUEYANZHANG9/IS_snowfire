@@ -138,9 +138,14 @@ for basin in basins:
 	april_dates = list()
 	april_index = list() 
 	for dayy in np.arange(len(arr_dates)):
-		if arr_dates[dayy].month == 4 and arr_dates[dayy].day == 1:
-			april_index.append(dayy) 
-			april_dates.append(arr_dates[dayy])
+		if (basin == "whites"):
+			if arr_dates[dayy].month == 2 and arr_dates[dayy].day == 1:
+				april_index.append(dayy)
+				april_dates.append(arr_dates[dayy])
+		else: 
+			if arr_dates[dayy].month == 4 and arr_dates[dayy].day == 1:
+				april_index.append(dayy) 
+				april_dates.append(arr_dates[dayy])
 	april_index = np.asarray(april_index) ## this is an index array
 	april_index_array = np.repeat(april_index.reshape(1,len(april_index)),len(vic_swe),axis=0) ## create index array for getting april values from vic and snotel swe 
 	vicswe_april = np.take(vic_swe,april_index,axis=1)

@@ -23,7 +23,7 @@ for eachline in np.arange(len(snotel)):
 		snotel_lons.append(site[1])
 		snotel_ids.append(site[3])
 
-## step three: find grid cell that each snotel site is in, and then generate four neighboring grid cells for each snotel site. 
+## step three: find grid cell that each snotel site is in, and then generate all neighboring grid cells for each snotel site. 
 arr_snotel_lats = np.asarray(snotel_lats)
 arr_snotel_lons = np.asarray(snotel_lons)
 arr_snotel_ids = np.asarray(snotel_ids)
