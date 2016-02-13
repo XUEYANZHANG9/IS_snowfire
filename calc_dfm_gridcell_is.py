@@ -12,19 +12,25 @@ import gc
 import pandas as pd 
 from snowpack_functions import get_elev_for_lat_lon,import_gridcell_elevation
 import datetime as dt
-
+import sys
 
 # IMPORT DATA FROM INTEGRATED SCENARIOS ARCHIVE 
 
 # In[26]:
 
 ################################# INPUTS #############################
+args = sys.argv[1:]
+model = args[0]
+scenario = args[1]
+lat = np.float(args[2])
+lon = np.float(args[3])
+
 #lat = 48.03125
-model = "CNRM-CM5"
-scenario="historical"
-lat = 48.021
+#model = "CNRM-CM5"
+#scenario="historical"
+#lat = 48.021
 #lon = -121.28125
-lon = -121.25
+#lon = -121.25
 ######################################################################
 
 direc = '/raid/gergel/%s' % "tmin"
@@ -37,7 +43,7 @@ tmax_full = xray.open_dataset(os.path.join(direc,tmax_file)) ## load tmax
 
 direc = '/raid/gergel/%s' % "rh"
 q_file = "%s_%s_%s.nc" % (model,scenario,"huss")
-q_full = xray.open_dataset(os.path.join(direc,rhmax_file)) ## load specific humidity
+q_full = xray.open_dataset(os.path.join(direc,q_file)) ## load specific humidity
 
 direc = '/raid/gergel/%s' % "precip"
 pr_file = "%s_%s_%s.nc" % (model,scenario,"pr")
@@ -55,14 +61,15 @@ lon_ind = np.argmin(np.abs(pr_full.lon - lon))
 lat_ind = np.argmin(np.abs(pr_full.lat - lat))
 
 ## get julian days 
-julians = pd.DatetimeIndex(np.asarray(pr_full.day)).dayofyear
+julians = pd.DatetimeIndex(np.asarray(pr_full.time)).dayofyear
 
 tmin = tmin_full.isel_points(lon=[lon_ind],lat=[lat_ind])['air_temp_min'].values[0,:] ## air_temp_min
 tmax = tmax_full.isel_points(lon=[lon_ind],lat=[lat_ind])['air_temp_max'].values[0,:] ## air_temp_max
 q = q_full.isel_points(lon=[lon_ind],lat=[lat_ind])['specific_humidity'].values[0,:] ## specific_humidity
-pptamt = pr_full.isel_points(lon=[lon_ind],lat=[lat_ind]) ## variable is precipitation 
+# pptamt = pr_full.isel_points(lon=[lon_ind],lat=[lat_ind]) ## variable is precipitation 
+pptamt = pr_full.isel_points(lon=[lon_ind],lat=[lat_ind])['precipitation'].values[0,:]  ## variable is precipitation 
 
-del tmax_full, q_full,pr_full,tmin_full
+del tmax_full, q_full,pr_full
 gc.collect() 
 
 
@@ -134,7 +141,7 @@ def calc_fm100_fm1000(pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100):
         pptdur = 0
     elif pptdur > 8:
         pptdur = 8
-        
+       
     bndry1 = ((24.0 - pptdur) * emc + (0.5 * pptdur + 41) * pptdur) / 24.0 
     fm100 = ((bndry1 - ymc100) * fr100) + ymc100 
     ## calculate 1000-hr fuel moisture daily using average of boundary conditions for
@@ -200,12 +207,14 @@ pdur_full = xray.open_dataset(os.path.join(direc,pdur_file)) ## pdur beta parame
 ## select out gridcell for pdur b parameter
 lon_ind_1 = np.argmin(np.abs(pdur_full.lon - lon))
 lat_ind_1 = np.argmin(np.abs(pdur_full.lat - lat))
-beta = pdur_full.isel_points(lon=[lon_ind_1],lat=[lat_ind_1])
+beta = pdur_full.isel_points(lon=[lon_ind_1],lat=[lat_ind_1])['pdur'].values
 
-pptamt_in = pptamt * 0.04 ## convert from mm to inches 
-pptdur_calc_df = pptamt_in['precipitation_amount'].to_series().map(lambda x: np.round(24 * (1 - (np.exp(-beta['pdur']*x)))) 
-                                                            if (x > 0) else 0) 
-pptdur = xray.DataArray.from_series(pptdur_calc_df).to_dataset()['precipitation_amount'].values[0,:]
+# pptamt_in = pptamt * 0.04 ## convert from mm to inches 
+pptamt_in = pptamt * 0.04
+# pptdur_calc_df = pptamt_in['precipitation'].to_series().map(lambda x: np.round(24 * (1 - (np.exp(-beta['pdur']*x)))) if (x > 0) else 0) 
+pptdur = np.round(24 * (1 - (np.exp(-beta * pptamt_in))))
+
+# pptdur = xray.DataArray.from_series(pptdur_calc_df).to_dataset()['precipitation'].values[0,:]
 
 
 # ITERATE AND CALCULATE 100-HR AND 1000-HR DFM WITH DERIVED RELATIVE HUMIDITY (FROM SPECIFIC HUMIDITY) 
@@ -215,15 +224,20 @@ pptdur = xray.DataArray.from_series(pptdur_calc_df).to_dataset()['precipitation_
 ## get elevation of grid cell
 soil_file = '/raid9/gergel/agg_snowpack/soil_avail.txt'
 elev_corr_info = import_gridcell_elevation(soil_file) 
-h = get_elev_for_lat_lon(elev_corr_info,lat,lon)
+print(np.round(tmin_full.lat[lat_ind],decimals=5))
+print(tmin_full.lon[lon_ind]) 
+
+h = get_elev_for_lat_lon(elev_corr_info,np.round(tmin_full.lat[lat_ind],decimals=5),np.round(tmin_full.lon[lon_ind],decimals=5))
 
 ## get pressure 
 p = estimate_p(h)
 
+x = 1
+
 tmois=np.zeros(shape=(x,7))
 bv=np.zeros(shape=(x,7))
 ymc=np.zeros(shape=(x,1))
-ndays = len(rhmax)
+ndays = len(q)
 
 fm1000_rh = np.ndarray(shape=(x,ndays),dtype='float')
 fm100_rh = np.ndarray(shape=(x,ndays),dtype='float')
@@ -242,12 +256,10 @@ for day in np.arange(ndays):
     rhmin = 100.0 * (ambvp/satvpx)
     if rhmin > 100:
         rhmin = 100
-    tmois,fm1000_rh[0,day],fm100_rh[0,day],bv = calc_fm100_fm1000(pptdur[day],rhmax,rhmin,
-                                                            kelvin_to_fahrenheit(tmax[day]),
-                                                            kelvin_to_fahrenheit(tmin[day]),
-                                                            lat,tmois,bv,julians[day],ymc)
-    ymc=fm100[0,day]
-    print(day)
+
+    tmois,fm1000_rh[0,day],fm100_rh[0,day],bv = calc_fm100_fm1000(np.float(pptdur[day]),rhmax,rhmin,np.float(kelvin_to_fahrenheit(tmax[day])),np.float(kelvin_to_fahrenheit(tmin[day])),np.float(tmin_full.lat[lat_ind]),tmois,bv,julians[day],ymc)
+    
+    ymc=fm100_rh[0,day]
 
 
 # CREATE ARRAY FOR DATAFRAME INDEX 
@@ -261,7 +273,7 @@ else:
     tp_start = dt.datetime(2006,1,1)
     tp_end = dt.datetime(2100,1,1)
 
-    dates = [tp_start + dt.timedelta(days=i) for i in range(0, (tp_end - tp_start).days)]
+dates = [tp_start + dt.timedelta(days=i) for i in range(0, (tp_end - tp_start).days)]
 dates_arr = np.asarray(dates)
 
 
@@ -269,16 +281,16 @@ dates_arr = np.asarray(dates)
 
 # In[37]:
 
-d = {'fm100':fm100[0,:],'fm1000':fm1000[0,:]}
-df = pd.DataFrame(data=d,index=dates_arr)
+d = {'fm100':fm100_rh[0,:],'fm1000':fm1000_rh[0,:]}
+df = pd.DataFrame(data={'fm100':fm100_rh[0,:],'fm1000':fm1000_rh[0,:],'lat':np.asarray(np.round(tmin_full.lat[lat_ind],decimals=5)),'lon':np.asarray(np.round(tmin_full.lon[lon_ind],decimals=5))},index=dates_arr)
 ds = xray.Dataset.from_dataframe(df)
-direc = '/raid/gergel/dfm_results/%s_%s' % (model,scenario)
+direc = '/raid/gergel/dfm_results/%s/%s' % (model,scenario)
 if not os.path.exists(direc):
-    os.makedirs(direc_gc) ## if directory doesn't exist, create it 
+    os.makedirs(direc) ## if directory doesn't exist, create it 
 ## save to netcdf 
-filename = 'dfm_%s_%s' % (model,scenario,lat,lon)
+filename = 'dfm_%s_%s.nc' % (str(lat),str(lon))
 ds.to_netcdf(os.path.join(direc,filename))
-
+print("saved netcdf to %s" % os.path.join(direc,filename)) 
 
 # In[ ]:
 
