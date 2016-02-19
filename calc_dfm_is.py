@@ -12,6 +12,7 @@ import gc
 import pandas as pd 
 import datetime as dt
 import sys
+import operator 
 
 # IMPORT DATA FROM INTEGRATED SCENARIOS ARCHIVE 
 
@@ -72,12 +73,21 @@ gc.collect()
 
 # In[27]:
 
+def constrain_dataset(da,bool_operator,constrain_value,fill_value):
+    ''' constrains masked values of dataset to be above/below given value,fills with given value and accounts for possible existing nans '''
+    import operator
+    import xray
+    da = da.fillna(-9999)
+    da = da.where((bool_operator(da,constrain_value)) & (da == -9999)).fillna(fill_value)
+    da = da.where(da != -9999).fillna(np.nan)
+    return(da)
+
 def calc_fm100_fm1000(x,pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100): 
     '''this subroutine computes the average boundary conditions for the past 
     24 hour and 100-hr-tl fuel moisture. The boundary conditions are weighted averages 
     of the EQMCs calculated from the temp and RH values. Philab is used to calculate 
     daylength which is the basis of the weighting function.''' 
-
+    from calc_dfm_is import constrain_dataset 
     emc1 = 0
     emc2 = 0
     emc = 0
@@ -105,36 +115,18 @@ def calc_fm100_fm1000(x,pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100
     minrh[(minrh > 10) & (minrh <= 50)] = 2.22749 + (0.160107 * minrh[(minrh > 10) & (minrh <= 50)]) - (0.014784 * maxt.values[(minrh > 10) & (minrh <= 50)])
     minrh[minrh > 50] = 21.0606 + (0.005565 * (minrh[minrh > 50]**2)) - (0.00035 * minrh[minrh > 50] * maxt.values[minrh > 50]) - (0.483199 * minrh[minrh > 50])
     emc1 = minrh
- 
-    for gc in xrange(len(lat)):
-    	if minrh[gc] <= 10:
-        	emc1[gc]= 0.03229 + (0.281073 * minrh[gc]) - (0.000578 * minrh[gc] * maxt[gc])
-    	elif minrh[gc] > 10 and minrh[gc] <= 50: 
-        	emc1[gc] = 2.22749 + (0.160107 * minrh[gc]) - (0.014784 * maxt[gc])
-    	else: 
-        	emc1[gc] = 21.0606 + (0.005565 * (minrh[gc]**2)) - (0.00035 * minrh[gc] * maxt[gc]) - (0.483199 * minrh[gc])
 
-    emc2 = np.ndarray(shape=len(lat),dtype='float')
-    for gc in xrange(len(lat)):
-    	if maxrh[gc] <= 10:
-        	emc2[gc] = 0.03229 + (0.281073 * maxrh[gc]) - (0.000578 * maxrh[gc]* mint[gc])
-    	elif maxrh > 10 and maxrh <= 50: 
-        	emc2[gc] = 2.22749 + (0.160107 * maxrh[gc]) - (0.014784 * mint[gc])
-    	else: 
-        	emc2[gc] = 21.0606 + (0.005565 * (maxrh[gc]**2)) - (0.00035 * maxrh[gc] * mint[gc]) - (0.483199 * maxrh[gc]) 
+    maxrh = maxrh.values 
+    maxrh[maxrh <= 10] = 0.03229 + (0.281073 * maxrh[maxrh <= 10]) - (0.000578 * maxrh[maxrh <= 10] * mint.values[maxrh <= 10]) 
+    maxrh[(maxrh > 10) & (maxrh <= 50)] = 2.22749 + (0.160107 * maxrh[(maxrh > 10) & (maxrh <= 50)]) - (0.014784 * mint.values[(maxrh > 10) & (maxrh <= 50)]) 
+    maxrh[maxrh > 50] = 21.0606 + (0.005565 * (maxrh[maxrh > 50]**2)) - (0.00035 * maxrh[maxrh > 50] * mint.values[maxrh > 50]) - (0.483199 * maxrh[maxrh > 50])
+    emc2 = maxrh 
 
-    emc = (daylit * emc1 + (24.0 - daylit) * emc2) / 24.0 
+    emc = (daylit.reshape(maxrh.shape) * emc1 + (24.0 - daylit.reshape(maxrh.shape)) * emc2) / 24.0 
 
     ## qc precip duration 
-    # for day in np.arange(len(pptdur)):
-    
-    # pptdur = pptdur*1.25
-    
-    for gc in xrange(len(lat)):
-    	if pptdur[gc] < 0:
-        	pptdur[gc] = 0
-    	elif pptdur[gc] > 8:
-        	pptdur[gc] = 8
+    pptdur = constrain_dataset(pptdur,operator.le,8,8)    
+    pptdur = constrain_dataset(pptdur,operator.gt,0,0) 
        
     bndry1 = ((24.0 - pptdur) * emc + (0.5 * pptdur + 41) * pptdur) / 24.0 
     fm100 = ((bndry1 - ymc100) * fr100) + ymc100 
@@ -190,8 +182,7 @@ def estimate_relative_humidity(q,e_s,p):
     w_s = 0.622 * (e_s / p)
     RH = 100.0 * (w / w_s)
     return (RH)
-
-
+ 
 ###################################################################################################### 
 
 x = len(q.lat)*len(q.lon) ## number of grid cells 
@@ -233,13 +224,9 @@ for day in xrange(ndays):
 	rhmin = 100.0 * (ambvp['specific_humidity'] / satvpx['air_temp_max'])
  
 	## constrain RH to be 100 % or less 
-	rhmin = rhmin.fillna(-9999)
-	rhmin = rhmin.where(rhmin <= 100).fillna(100) 
-	rhmin = rhmin.where(rhmin == -9999).fillna(np.nan) 
-	rhmax = rhmax.fillna(-9999)
-	rhmax = rhmax.where(rhmax <= 100).fillna(100) 
-	rhmax = rhmax.where(rhmax == -9999).fillna(np.nan) 
-
+        rhmin = constrain_dataset(rhmin,operator.le,100,100)
+	rhmax = constrain_dataset(rhmax,operator.le,100,100) 
+	
 	tmois,fm1000_rh[:,day],fm100_rh[:,day],bv = calc_fm100_fm1000(x,pptdur.isel(time=day),rhmax,rhmin,kelvin_to_fahrenheit(tmax['air_temp_max'].isel(time=day)),kelvin_to_fahrenheit(tmin['air_temp_min'].isel(time=day)),lats,tmois,bv,julians[day],ymc)
 
 	ymc=fm100_rh[:,day]
