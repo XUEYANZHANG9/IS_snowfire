@@ -29,22 +29,22 @@ scenario = args[1]
 
 direc = '/raid/gergel/%s' % "tmin"
 tmin_file = "%s_%s_%s.nc" % (model,scenario,"tasmin")
-tmin_f = xray.open_dataset(os.path.join(direc,tmin_file)) ## load tmin
+tmin_f = xray.open_dataset(os.path.join(direc,tmin_file),chunks={'time': 1400}) ## load tmin
 
 direc = '/raid/gergel/%s' % "tmax"
 tmax_file = "%s_%s_%s.nc" % (model,scenario,"tasmax")
-tmax_f = xray.open_dataset(os.path.join(direc,tmax_file)) ## load tmax
+tmax_f = xray.open_dataset(os.path.join(direc,tmax_file),chunks={'time': 1400}) ## load tmax
 
 direc = '/raid/gergel/%s' % "rh"
 q_file = "%s_%s_%s.nc" % (model,scenario,"huss")
-q_f = xray.open_dataset(os.path.join(direc,q_file)) ## load specific humidity
+q_f = xray.open_dataset(os.path.join(direc,q_file),chunks={'time': 1400}) ## load specific humidity
 
 direc = '/raid/gergel/pptdur'
 pr_file = "%s_%s.nc" % (model,scenario)
-pptdur = xray.open_dataset(os.path.join(direc,pr_file)) ## load precip
+pptdur = xray.open_dataset(os.path.join(direc,pr_file),chunks={'time': 1400}) ## load precip
 
 ## adjust lat/lon dimensions since the index names are different
-tmin_lons_new = tmin_full['lon'].values[tmin_full['lon'].values > 180] - 360 
+tmin_lons_new = tmin_f['lon'].values[tmin_f['lon'].values > 180] - 360 
 tmin_f['lon'] = tmin_lons_new
 tmax_f['lon'] = tmin_lons_new
 q_f['lon'] = tmin_lons_new 
@@ -73,10 +73,10 @@ gc.collect()
 # In[27]:
 
 def calc_fm100_fm1000(x,pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100): 
-    """this subroutine computes the average boundary conditions for the past 
+    '''this subroutine computes the average boundary conditions for the past 
     24 hour and 100-hr-tl fuel moisture. The boundary conditions are weighted averages 
     of the EQMCs calculated from the temp and RH values. Philab is used to calculate 
-    daylength which is the basis of the weighting function.""" 
+    daylength which is the basis of the weighting function.''' 
 
     emc1 = 0
     emc2 = 0
@@ -94,18 +94,20 @@ def calc_fm100_fm1000(x,pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100
     decl = 0.41008*np.sin(np.deg2rad((julians-82) * 0.01745))
     daylit = 24 * (1.0 - ((np.arccos(np.tan(np.deg2rad(phi)) * np.tan(np.deg2rad(decl))) / math.pi)))'''
     #######################
+    print(type(julians))
+    print(julians.shape)    
     
     ## John's calcDaylight function
-    for jday in np.arange(len(julians)):
-    	if julians[jday] > 365:
-        	julians[jday] = 365
+    if julians > 365:
+	julians = 365 
+
     phi = lat * 0.01745 ## converts latitude to radians
     decl = .41008*np.sin((julians-82)*0.01745)
     daylit = 24.0*(1-np.arccos(np.tan(phi)*np.tan(decl))/3.14159)
     daylit = daylit.real
     
-    emc1 = np.ndarray(shape=x),dtype='float')
-    for gc in np.arange(len(lat)):
+    emc1 = np.ndarray(shape=x,dtype='float')
+    for gc in xrange(len(lat)):
     	if minrh[gc] <= 10:
         	emc1[gc]= 0.03229 + (0.281073 * minrh[gc]) - (0.000578 * minrh[gc] * maxt[gc])
     	elif minrh[gc] > 10 and minrh[gc] <= 50: 
@@ -113,8 +115,8 @@ def calc_fm100_fm1000(x,pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100
     	else: 
         	emc1[gc] = 21.0606 + (0.005565 * (minrh[gc]**2)) - (0.00035 * minrh[gc] * maxt[gc]) - (0.483199 * minrh[gc])
 
-    emc2 = np.ndarray((shape=x),dtype='float')
-    for gc in np.arange(len(lat)):
+    emc2 = np.ndarray(shape=len(lat),dtype='float')
+    for gc in xrange(len(lat)):
     	if maxrh[gc] <= 10:
         	emc2[gc] = 0.03229 + (0.281073 * maxrh[gc]) - (0.000578 * maxrh[gc]* mint[gc])
     	elif maxrh > 10 and maxrh <= 50: 
@@ -123,7 +125,7 @@ def calc_fm100_fm1000(x,pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100
         	emc2[gc] = 21.0606 + (0.005565 * (maxrh[gc]**2)) - (0.00035 * maxrh[gc] * mint[gc]) - (0.483199 * maxrh[gc])
     
     ## qc maxrh 
-    for gc in np.arange(len(emc1[:,0])):
+    for gc in xrange(len(lat)):
     	if np.isnan(maxrh[gc]):
         	emc1[gc] = np.nan
         	emc2[gc] = np.nan 
@@ -135,7 +137,7 @@ def calc_fm100_fm1000(x,pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100
     
     # pptdur = pptdur*1.25
     
-    for gc in np.arange(len(pptdur)):
+    for gc in xrange(len(lat)):
     	if pptdur[gc] < 0:
         	pptdur[gc] = 0
     	elif pptdur[gc] > 8:
@@ -151,7 +153,7 @@ def calc_fm100_fm1000(x,pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100
     bvave = np.zeros(x)
 
     ## accumulate a 6-day total
-    for i in np.arange(0,6):
+    for i in xrange(6):
         bv[:,i] = bv[:,i+1]
         bvave = bvave + bv[:,i]
 
@@ -166,7 +168,7 @@ def calc_fm100_fm1000(x,pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100
     fm1000 = tmois[:,0] + (bvave - tmois[:,0])*fr1
 
     ## move each days 1000 hr down one, drop the oldest 
-    for i in np.arange(0,6):
+    for i in xrange(6):
         tmois[:,i] = tmois[:,i+1] 
     tmois[:,6] = fm1000 
 
@@ -183,8 +185,9 @@ def estimate_p(h):
 
 def estimate__e_s(T): 
     ''' estimates saturation vapor pressure'''
+    from xray import ufuncs
     T0 = 273.15 ## Kelvin, reference temperature
-    e_s = 611 * np.exp((17.67 * (T - T0)) / (T - 29.65) )
+    e_s = 611 * ufuncs.exp((17.67 * (T - T0)) / (T - 29.65) )
     return(e_s)
 
 def estimate_relative_humidity(q,e_s,p):
@@ -198,10 +201,18 @@ def estimate_relative_humidity(q,e_s,p):
 
 ###################################################################################################### 
 
-x = len(q.lat*q.lon) ## number of grid cells 
+x = len(q.lat)*len(q.lon) ## number of grid cells 
 
 ## get gridcell elevations 
-h = np.zeros(x) 
+h = np.zeros((len(q.lat),len(q.lon)))  
+
+## get list of lats
+lats = np.ndarray(shape=x,dtype='float') 
+count = 0
+for j in xrange(len(q.lat)):
+	for k in xrange(len(q.lon)):
+		lats[count] = q.lat[j] 
+		count += 1 
 
 ## get pressure
 p = estimate_p(h)
@@ -209,36 +220,34 @@ p = estimate_p(h)
 tmois=np.zeros(shape=(x,7))
 bv=np.zeros(shape=(x,7))
 ymc=np.zeros(shape=(x,1))
-ndays = len(q.time)
+ndays = len(julians)
 
 ## INITIALIZE DFM ARRAYS TO FILL IN OVER ITERATION 
-fm1000_rh = np.ndarray(shape=(x,ndays),dtype='float')
-fm100_rh = np.ndarray(shape=(x,ndays),dtype='float')
-
-t_avg = (tmax['air_temperature_max'] + tmin['air_temperature_min']) / 2.0 ## in kelvin still
-e_s = estimate__e_s(t_avg) ## saturation vapor pressure 
-satvpx = estimate__e_s(tmax['air_temp_max'])
-satvpn = estimate__e_s(tmin['air_temp_min']) 
-RH = estimate_relative_humidity(q['specific_humidity'],e_s,p) 
-ambvp = (RH * e_s) / 100.0 
-rhmax = 100.0 * (ambvp / satvpn) 
-rhmin = 100.0 * (ambvp / satvpn) 
-## constrain RH to be 100 % or less
-
-def constrain_rh(RH):
-	''' this function constrains relative humidity to be equal or less than 100 %'''
-	if RH > 100: 
-		RH = 100
-	return(RH) 
-
-rhmax.apply(constrain_rh,keep_attrs=True) 
-rhmin.apply(constrain_rh,keep_attrs=True) 
+fm1000_rh = np.ndarray(shape=(ndays,len(q.lat),len(q.lon)),dtype='float')
+fm100_rh = np.ndarray(shape=(ndays,len(q.lat),len(q.lon)),dtype='float')
 
 # ITERATE AND CALCULATE 100 HR AND 1000 HR DFM 
-for day in np.arange(ndays):
-	tmois,fm1000_rh[:,day],fm100_rh[:,day],bv = calc_fm100_fm1000(x,pptdur,rhmax,rhmin,kelvin_to_fahrenheit(tmax['air_temp_max']),kelvin_to_fahrenheit(tmin['air_temp_min']),tmin_full.lat,tmois,bv,julians,ymc)
-    
+for day in xrange(ndays):
+	t_avg = (tmax['air_temp_max'].isel(time=day) + tmin['air_temp_min'].isel(time=day)) / 2.0 
+	e_s = estimate__e_s(t_avg) ## saturation vapor pressure	
+	del t_avg
+	gc.collect()
+	satvpx = estimate__e_s(tmax.isel(time=day))
+	satvpn = estimate__e_s(tmin.isel(time=day)) 	
+	RH = estimate_relative_humidity(q.isel(time=day),e_s,p) 	
+	ambvp = (RH * e_s) / 100.0 
+	rhmax = 100.0 * (ambvp['specific_humidity'] / satvpn['air_temp_min']) 
+	rhmin = 100.0 * (ambvp['specific_humidity'] / satvpx['air_temp_max']) 
+	## constrain RH to be 100 % or less 
+	
+	rhmin.where((rhmin < 100), 100,inplace=True)
+	rhmax.where((rhmax < 100), 100,inplace=True) 
+
+
+	tmois,fm1000_rh[:,day],fm100_rh[:,day],bv = calc_fm100_fm1000(x,pptdur.isel(time=day),rhmax,rhmin,kelvin_to_fahrenheit(tmax['air_temp_max'].isel(time=day)),kelvin_to_fahrenheit(tmin['air_temp_min'].isel(time=day)),lats,tmois,bv,julians[day],ymc)
+
 	ymc=fm100_rh[:,day]
+	print(day) 
 
 # CONSTRUCT DATASET
 
