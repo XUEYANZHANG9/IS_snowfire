@@ -88,12 +88,6 @@ def calc_fm100_fm1000(x,pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100
     ambvp = 0
     fr100 = 0.3156
 
-    '''# daylit = calcDaylight(j_date,lat) ########## need to write this function 
-    #######################
-    phi = lat * 0.01745 ## lat is in degrees 
-    decl = 0.41008*np.sin(np.deg2rad((julians-82) * 0.01745))
-    daylit = 24 * (1.0 - ((np.arccos(np.tan(np.deg2rad(phi)) * np.tan(np.deg2rad(decl))) / math.pi)))'''
-    #######################
     print(type(julians))
     print(julians.shape)    
     
@@ -106,7 +100,12 @@ def calc_fm100_fm1000(x,pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100
     daylit = 24.0*(1-np.arccos(np.tan(phi)*np.tan(decl))/3.14159)
     daylit = daylit.real
     
-    emc1 = np.ndarray(shape=x,dtype='float')
+    minrh = minrh.values     
+    minrh[minrh <= 10] = 0.03229 + (0.281073 * minrh[minrh <= 10]) - (0.000578 * minrh[minrh <= 10] * maxt.values[minrh <= 10])
+    minrh[(minrh > 10) & (minrh <= 50)] = 2.22749 + (0.160107 * minrh[(minrh > 10) & (minrh <= 50)]) - (0.014784 * maxt.values[(minrh > 10) & (minrh <= 50)])
+    minrh[minrh > 50] = 21.0606 + (0.005565 * (minrh[minrh > 50]**2)) - (0.00035 * minrh[minrh > 50] * maxt.values[minrh > 50]) - (0.483199 * minrh[minrh > 50])
+    emc1 = minrh
+ 
     for gc in xrange(len(lat)):
     	if minrh[gc] <= 10:
         	emc1[gc]= 0.03229 + (0.281073 * minrh[gc]) - (0.000578 * minrh[gc] * maxt[gc])
@@ -122,13 +121,7 @@ def calc_fm100_fm1000(x,pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100
     	elif maxrh > 10 and maxrh <= 50: 
         	emc2[gc] = 2.22749 + (0.160107 * maxrh[gc]) - (0.014784 * mint[gc])
     	else: 
-        	emc2[gc] = 21.0606 + (0.005565 * (maxrh[gc]**2)) - (0.00035 * maxrh[gc] * mint[gc]) - (0.483199 * maxrh[gc])
-    
-    ## qc maxrh 
-    for gc in xrange(len(lat)):
-    	if np.isnan(maxrh[gc]):
-        	emc1[gc] = np.nan
-        	emc2[gc] = np.nan 
+        	emc2[gc] = 21.0606 + (0.005565 * (maxrh[gc]**2)) - (0.00035 * maxrh[gc] * mint[gc]) - (0.483199 * maxrh[gc]) 
 
     emc = (daylit * emc1 + (24.0 - daylit) * emc2) / 24.0 
 
@@ -237,12 +230,15 @@ for day in xrange(ndays):
 	RH = estimate_relative_humidity(q.isel(time=day),e_s,p) 	
 	ambvp = (RH * e_s) / 100.0 
 	rhmax = 100.0 * (ambvp['specific_humidity'] / satvpn['air_temp_min']) 
-	rhmin = 100.0 * (ambvp['specific_humidity'] / satvpx['air_temp_max']) 
+	rhmin = 100.0 * (ambvp['specific_humidity'] / satvpx['air_temp_max'])
+ 
 	## constrain RH to be 100 % or less 
-	
-	rhmin.where((rhmin < 100), 100,inplace=True)
-	rhmax.where((rhmax < 100), 100,inplace=True) 
-
+	rhmin = rhmin.fillna(-9999)
+	rhmin = rhmin.where(rhmin <= 100).fillna(100) 
+	rhmin = rhmin.where(rhmin == -9999).fillna(np.nan) 
+	rhmax = rhmax.fillna(-9999)
+	rhmax = rhmax.where(rhmax <= 100).fillna(100) 
+	rhmax = rhmax.where(rhmax == -9999).fillna(np.nan) 
 
 	tmois,fm1000_rh[:,day],fm100_rh[:,day],bv = calc_fm100_fm1000(x,pptdur.isel(time=day),rhmax,rhmin,kelvin_to_fahrenheit(tmax['air_temp_max'].isel(time=day)),kelvin_to_fahrenheit(tmin['air_temp_min'].isel(time=day)),lats,tmois,bv,julians[day],ymc)
 
