@@ -13,6 +13,8 @@ import pandas as pd
 import datetime as dt
 import sys
 import operator 
+ 
+sys.stdout.flush()
 
 # IMPORT DATA FROM INTEGRATED SCENARIOS ARCHIVE 
 
@@ -50,6 +52,8 @@ tmin_f['lon'] = tmin_lons_new
 tmax_f['lon'] = tmin_lons_new
 q_f['lon'] = tmin_lons_new 
 
+print("finished chunking data")
+
 ## cut out conus east of 103 for each variable 
 swe_mask_file = '/raid9/gergel/agg_snowpack/goodleap/SWE/histmeanmask.nc' ## 1s are swe, 0s are no swe 
 swe_mask = xray.open_dataset(swe_mask_file)
@@ -61,13 +65,14 @@ swe_mask_align,tmax = xray.align(swe_mask,tmax_f,join='inner',copy=False)
 swe_mask_align,tmin = xray.align(swe_mask,tmin_f,join='inner',copy=False)
 swe_mask_align,q = xray.align(swe_mask,q_f,join='inner',copy=False) 
 
+print("FEEL THE BERN!") 
+
 ## get julian days 
 julians = pd.DatetimeIndex(np.asarray(tmin.time)).dayofyear
 
 ## delete full arrays of each variable for conus 
 del tmax_f,tmin_f,q_f,swe_mask,swe_mask_align 
 gc.collect() 
-
 
 # 100-hr and 1000-hr DFM FUNCTION 
 
@@ -88,18 +93,12 @@ def calc_fm100_fm1000(x,pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100
     of the EQMCs calculated from the temp and RH values. Philab is used to calculate 
     daylength which is the basis of the weighting function.''' 
     from calc_dfm_is import constrain_dataset 
-    emc1 = 0
-    emc2 = 0
-    emc = 0
     bndry1 = 0
     bndry = 0
-    bvave = 0
-    daylit = 0
     ambvp = 0
-    fr100 = 0.3156
+    fr100 = 0.3156  
 
-    print(type(julians))
-    print(julians.shape)    
+    sys.stdout.flush()
     
     ## John's calcDaylight function
     if julians > 365:
@@ -116,13 +115,19 @@ def calc_fm100_fm1000(x,pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100
     minrh[minrh > 50] = 21.0606 + (0.005565 * (minrh[minrh > 50]**2)) - (0.00035 * minrh[minrh > 50] * maxt.values[minrh > 50]) - (0.483199 * minrh[minrh > 50])
     emc1 = minrh
 
+    print("calculated emc1")
+
     maxrh = maxrh.values 
     maxrh[maxrh <= 10] = 0.03229 + (0.281073 * maxrh[maxrh <= 10]) - (0.000578 * maxrh[maxrh <= 10] * mint.values[maxrh <= 10]) 
     maxrh[(maxrh > 10) & (maxrh <= 50)] = 2.22749 + (0.160107 * maxrh[(maxrh > 10) & (maxrh <= 50)]) - (0.014784 * mint.values[(maxrh > 10) & (maxrh <= 50)]) 
     maxrh[maxrh > 50] = 21.0606 + (0.005565 * (maxrh[maxrh > 50]**2)) - (0.00035 * maxrh[maxrh > 50] * mint.values[maxrh > 50]) - (0.483199 * maxrh[maxrh > 50])
     emc2 = maxrh 
 
+    print("calculated emc2") 
+
     emc = (daylit.reshape(maxrh.shape) * emc1 + (24.0 - daylit.reshape(maxrh.shape)) * emc2) / 24.0 
+
+    print("calculated emcs") 
 
     ## qc precip duration 
     pptdur = constrain_dataset(pptdur,operator.le,8,8)    
@@ -130,32 +135,43 @@ def calc_fm100_fm1000(x,pptdur,maxrh,minrh,maxt,mint,lat,tmois,bv,julians,ymc100
        
     bndry1 = ((24.0 - pptdur) * emc + (0.5 * pptdur + 41) * pptdur) / 24.0 
     fm100 = ((bndry1 - ymc100) * fr100) + ymc100 
-    ## calculate 1000-hr fuel moisture daily using average of boundary conditions for
-    ## past seven days. starting value set by climate type. 
 
+    ## calculate 1000-hr fuel moisture daily using average of boundary conditions for past seven days. starting value set by climate type. 
     fr1 = 0.3068
 
     bvave = np.zeros(x)
-
+    
     ## accumulate a 6-day total
-    for i in xrange(6):
-        bv[:,i] = bv[:,i+1]
-        bvave = bvave + bv[:,i]
+    bv[0,:,:] = bv[1,:,:]
+    bv[1,:,:] = bv[2,:,:]
+    bv[2,:,:] = bv[3,:,:]
+    bv[3,:,:] = bv[4,:,:]
+    bv[4,:,:] = bv[5,:,:]
+    bv[5,:,:] = bv[6,:,:]
+    bvave = bv.sum(axis=1)     
 
     bndry = ((24 - pptdur) * emc + (2.7 * pptdur + 76) * pptdur) / 24.0 
-    bv[:,6] = bndry
+    bv[6,:,:] = bndry
+
+    print("calculated bvs") 
 
     ## add today's boundary from subfm100, divide by 7 days 
     bvave = (bvave + bndry) / 7.0 
 
     ## calculate today's 1000 hr fuel moisture 
-    # fm1000 = tmois[:,1] + (bvave - tmois[:,1])*fr1 
-    fm1000 = tmois[:,0] + (bvave - tmois[:,0])*fr1
+    fm1000 = tmois[0,:,:] + (bvave - tmois[0,:,:])*fr1
 
-    ## move each days 1000 hr down one, drop the oldest 
-    for i in xrange(6):
-        tmois[:,i] = tmois[:,i+1] 
-    tmois[:,6] = fm1000 
+    ## move each days 1000 hr down one, drop the oldest
+    # tmois[0:6,:,:] = tmois[1:7,:,:] 
+    tmois[0,:,:] = tmois[1,:,:] 
+    tmois[1,:,:] = tmois[2,:,:]
+    tmois[2,:,:] = tmois[3,:,:] 
+    tmois[3,:,:] = tmois[4,:,:]
+    tmois[4,:,:] = tmois[5,:,:]
+    tmois[5,:,:] = tmois[6,:,:]
+    tmois[6,:,:] = fm1000 
+
+    print("finished tmois")     
 
     return(tmois,fm1000,fm100,bv)
 
@@ -201,17 +217,20 @@ for j in xrange(len(q.lat)):
 ## get pressure
 p = estimate_p(h)
 
-tmois=np.zeros(shape=(x,7))
-bv=np.zeros(shape=(x,7))
-ymc=np.zeros(shape=(x,1))
+tmois=np.zeros(shape=(7,len(q.lat),len(q.lon)))
+bv=np.zeros(shape=(7,len(q.lat),len(q.lon)))
+ymc=np.zeros(shape=(len(q.lat),len(q.lon)))
 ndays = len(julians)
 
 ## INITIALIZE DFM ARRAYS TO FILL IN OVER ITERATION 
 fm1000_rh = np.ndarray(shape=(ndays,len(q.lat),len(q.lon)),dtype='float')
 fm100_rh = np.ndarray(shape=(ndays,len(q.lat),len(q.lon)),dtype='float')
 
+print("initialized arrays for dfm") 
+
 # ITERATE AND CALCULATE 100 HR AND 1000 HR DFM 
 for day in xrange(ndays):
+	print("now calculating day %f" %day) 
 	t_avg = (tmax['air_temp_max'].isel(time=day) + tmin['air_temp_min'].isel(time=day)) / 2.0 
 	e_s = estimate__e_s(t_avg) ## saturation vapor pressure	
 	del t_avg
@@ -222,15 +241,17 @@ for day in xrange(ndays):
 	ambvp = (RH * e_s) / 100.0 
 	rhmax = 100.0 * (ambvp['specific_humidity'] / satvpn['air_temp_min']) 
 	rhmin = 100.0 * (ambvp['specific_humidity'] / satvpx['air_temp_max'])
- 
+
 	## constrain RH to be 100 % or less 
         rhmin = constrain_dataset(rhmin,operator.le,100,100)
 	rhmax = constrain_dataset(rhmax,operator.le,100,100) 
-	
-	tmois,fm1000_rh[:,day],fm100_rh[:,day],bv = calc_fm100_fm1000(x,pptdur.isel(time=day),rhmax,rhmin,kelvin_to_fahrenheit(tmax['air_temp_max'].isel(time=day)),kelvin_to_fahrenheit(tmin['air_temp_min'].isel(time=day)),lats,tmois,bv,julians[day],ymc)
+	print("entering iteration loop") 
+	tmois,fm1000_rh[day,:,:],fm100_rh[day,:,:],bv = calc_fm100_fm1000(x,pptdur.isel(time=day),rhmax,rhmin,kelvin_to_fahrenheit(tmax['air_temp_max'].isel(time=day)),kelvin_to_fahrenheit(tmin['air_temp_min'].isel(time=day)),lats,tmois,bv,julians[day],ymc)
 
-	ymc=fm100_rh[:,day]
+	ymc=fm100_rh[day,:,:]
 	print(day) 
+
+print("finished iteration loop") 
 
 # CONSTRUCT DATASET
 
