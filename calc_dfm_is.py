@@ -18,7 +18,7 @@ scenario = args[1]
 
 # model = "CNRM-CM5"
 # scenario="historical"
-chunk_number = 1200
+chunk_number = 1600
 direc = '/raid/gergel/%s' % "tmin"
 tmin_file = "%s_%s_%s.nc" % (model, scenario, "tasmin")
 tmin_f = xray.open_dataset(os.path.join(direc, tmin_file), chunks={'time': chunk_number}) #  load tmin
@@ -85,6 +85,7 @@ def calc_fm100_fm1000(x, pptdur, maxrh, minrh, maxt, mint, lat, tmois, bv, julia
     	daylength which is the basis of the weighting function.
 	'''
     	fr100 = 0.3156
+	fr1 = 0.3068
 
     	sys.stdout.flush()
 
@@ -101,7 +102,7 @@ def calc_fm100_fm1000(x, pptdur, maxrh, minrh, maxt, mint, lat, tmois, bv, julia
     	minrh = minrh.values
 	maxt = maxt.values
 	mint = mint.values
-    	inds = np.nonzero(minrh.data <= 10)
+    	inds = np.nonzero(minrh <= 10)
     	minrh[inds] = 0.03229 + (0.281073 * minrh[inds]) - (0.000578 * minrh[inds] * maxt[inds])
     	inds = np.nonzero((minrh > 10) & (minrh <= 50))
     	minrh[inds] = 2.22749 + (0.160107 * minrh[inds]) - (0.014784 * maxt[inds])
@@ -117,48 +118,32 @@ def calc_fm100_fm1000(x, pptdur, maxrh, minrh, maxt, mint, lat, tmois, bv, julia
     	maxrh[inds] = 2.22749 + (0.160107 * maxrh[inds]) - (0.014784 * mint[inds])
     	inds = np.nonzero((maxrh > 50) & (maxrh <= 80)) 
     	maxrh[inds] = 21.0606 + (0.005565 * (maxrh_sq.values[inds])) - (0.00035 * maxrh[inds] * mint[inds]) - (0.483199 * maxrh[inds])
-	inds = np.nonzero(maxrh > 50) 
+	inds = np.nonzero(maxrh > 80) 
         maxrh[inds] = 21.0606 + (0.005565 * (maxrh_sq.values[inds])) - (0.00035 * maxrh[inds] * mint[inds]) - (0.483199 * maxrh[inds])
-	emc2 = maxrh
-
-    	print("calculated emc2")
-
-	def emc1(rh,t):
-		if rh < 10:
-        		emc = 0.03229 + (0.281073 * rh) - (0.000578 * rh * t)
-			return(emc) 
-		else:
-			return(rh)  
+	emc2 = maxrh 
 
     	emc = (daylit.reshape(maxrh.shape) * emc1 + (24.0 - daylit.reshape(maxrh.shape)) * emc2) / 24.0
 
     	print("calculated emcs")
 
     	# qc precip duration
+	'''
     	pptdur = constrain_dataset(pptdur, operator.le, 8, 8)
     	pptdur = constrain_dataset(pptdur, operator.gt, 0, 0)
+	'''
 
     	bndry1 = ((24.0 - pptdur) * emc + (0.5 * pptdur + 41) * pptdur) / 24.0
     	fm100 = ((bndry1 - ymc100) * fr100) + ymc100
 
     	# calculate 1000-hr fuel moisture daily using average of boundary conditions for past seven days. starting value set by climate type.
-    	fr1 = 0.3068
 
     	# accumulate a 6-day total
 	bv = np.roll(bv, -1, axis=0)
-	'''
-    	bv[0,:,:] = bv[1,:,:]
-    	bv[1,:,:] = bv[2,:,:]
-    	bv[2,:,:] = bv[3,:,:]
-    	bv[3,:,:] = bv[4,:,:]
-    	bv[4,:,:] = bv[5,:,:]
-    	bv[5,:,:] = bv[6,:,:]
-	'''
 
-    	bvave = bv.sum(axis=1)
+    	bvave = bv.sum(axis=0)
 
     	bndry = ((24 - pptdur) * emc + (2.7 * pptdur + 76) * pptdur) / 24.0
-    	bv[6,:,:] = bndry
+    	bv[6,:,:] = bndry['precipitation'].values 
 
 
     	# add today's boundary from subfm100, divide by 7 days
@@ -169,16 +154,8 @@ def calc_fm100_fm1000(x, pptdur, maxrh, minrh, maxt, mint, lat, tmois, bv, julia
 
     	# move each days 1000 hr down one, drop the oldest
     	tmois = np.roll(tmois, -1, axis=0)
-	'''
-    	tmois[0,:,:] = tmois[1,:,:]
-    	tmois[1,:,:] = tmois[2,:,:]
-    	tmois[2,:,:] = tmois[3,:,:]
-    	tmois[3,:,:] = tmois[4,:,:]
-    	tmois[4,:,:] = tmois[5,:,:]
-    	tmois[5,:,:] = tmois[6,:,:]
-	'''
     	
-	tmois[6,:,:] = fm1000
+	tmois[6,:,:] = fm1000['precipitation'].values
 
     	return(tmois,fm1000,fm100,bv)
 
@@ -270,26 +247,29 @@ print("finished iteration loop")
 
 ds = xray.Dataset()
 lon_da = xray.DataArray(
-			tmax.lon, dims=('longitude', ), name='longitude',
+			q.lon, dims=('lon'), name='longitude',
 			attrs={'long_name': 'longitude coordinate'})
 lat_da = xray.DataArray(
-			tmax.lat, dims=('latitude', ), name='latitude',
+			q.lat, dims=('lat'), name='latitude',
 			attrs={'long_name': 'latitude coordinate'})
+time_da = xray.DataArray(
+			q.time, dims=('time'), name='time', 
+			attrs={'long_name': 'time'}) 
 ds['fm100'] = xray.DataArray(
-			fm100_rh, dims=('latitude', 'longitude'), name='fm100',
-			coords={'latitude': lat_da, 'longitude': lon_da},
+			fm100_rh, dims=('time','lat', 'lon'),name='fm100',
+			coords={'time': time_da, 'lat': lat_da, 'lon': lon_da,},
 			attrs={'long_name': '100 hr dead fuel moisture'})
 ds['fm1000'] = xray.DataArray(
-			fm1000_rh, dims=('latitude', 'longitude'), name='fm1000',
-			coords={'latitude': lat_da, 'longitude': lon_da},
+			fm1000_rh, dims=('time','lat', 'lon'),name='fm1000',
+			coords={'time': time_da, 'lat': lat_da, 'lon': lon_da},
 			attrs={'long_name': '1000 hr dead fuel moisture'})
 ds['time'] = xray.DataArray(
-			tmax.time, dims=('latitude', 'longitude'), name='time',
-			coords={'latitude': lat_da, 'longitude': lon_da},
+			q.time, dims=('time','lat', 'lon'), name='time',
+			coords={'time': time_da, 'lat': lat_da, 'lon': lon_da},
 			attrs={'long_name': 'time'})
 
 # WRITE TO NETCDF
-direc = '/raid/gergel/dfm' % (model, scenario)
+direc = '/raid/gergel/dfm' 
 if not os.path.exists(direc):
 	os.makedirs(direc)  # if directory doesn't exist, create it
 # save to netcdf
