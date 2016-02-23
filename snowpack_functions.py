@@ -314,9 +314,9 @@ def get_elev_for_lat_lon(elev_corr_info,lat,lon):
         if (elev_corr_info[row_num,1] == lat) and (elev_corr_info[row_num,2] == lon):
             elevation_individual_gridcell = elev_corr_info[row_num,3]
     '''
-    row_ind = np.where((elev_corr_info[:,1]) & (elev_corr_info[:,2] == lon))
+    row_ind = np.where((elev_corr_info[:,1] == lat) & (elev_corr_info[:,2] == lon))
     elev = elev_corr_info[row_ind,3][0][0]
-    return(elevation_individual_gridcell)
+    return(elev)
 
 #### general version of function: takes in datess and swe arrays, removes leap years from both
 def remove_leap_years(datess,swe):
