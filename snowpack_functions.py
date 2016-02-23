@@ -305,10 +305,17 @@ def import_gridcell_elevation(soil_file):
 
 #### this function gets the corresponding latitude given a numpy array of lats, lons and elevations and inputted lat and lon points
 def get_elev_for_lat_lon(elev_corr_info,lat,lon):
+    """
+    function takes in soil file as a numpy array and returns elevation corresponding to input lat and lon 
+    """ 
     import numpy as np
+    '''
     for row_num in np.arange(len(elev_corr_info)):
         if (elev_corr_info[row_num,1] == lat) and (elev_corr_info[row_num,2] == lon):
             elevation_individual_gridcell = elev_corr_info[row_num,3]
+    '''
+    row_ind = np.where((elev_corr_info[:,1]) & (elev_corr_info[:,2] == lon))
+    elev = elev_corr_info[row_ind,3][0][0]
     return(elevation_individual_gridcell)
 
 #### general version of function: takes in datess and swe arrays, removes leap years from both
