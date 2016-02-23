@@ -18,22 +18,27 @@ scenario = args[1]
 
 # model = "CNRM-CM5"
 # scenario="historical"
-chunk_number = 1600
+
+chunk_number = 20
 direc = '/raid/gergel/%s' % "tmin"
 tmin_file = "%s_%s_%s.nc" % (model, scenario, "tasmin")
 tmin_f = xray.open_dataset(os.path.join(direc, tmin_file), chunks={'time': chunk_number}) #  load tmin
+#tmin_f = xray.open_dataset(os.path.join(direc, tmin_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load tmin
 
 direc = '/raid/gergel/%s' % "tmax"
 tmax_file = "%s_%s_%s.nc" % (model, scenario, "tasmax")
 tmax_f = xray.open_dataset(os.path.join(direc, tmax_file), chunks={'time': chunk_number}) #  load tmax
+#tmax_f = xray.open_dataset(os.path.join(direc, tmax_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load tmax
 
 direc = '/raid/gergel/%s' % "rh"
 q_file = "%s_%s_%s.nc" % (model, scenario, "huss")
 q_f = xray.open_dataset(os.path.join(direc, q_file), chunks={'time': chunk_number}) #  load specific humidity
+#q_f = xray.open_dataset(os.path.join(direc, q_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load specific humidity
 
 direc = '/raid/gergel/pptdur'
 pr_file = "%s_%s.nc" % (model, scenario)
 pptdur = xray.open_dataset(os.path.join(direc, pr_file), chunks={'time': chunk_number}) #  load precip
+#pptdur = xray.open_dataset(os.path.join(direc, pr_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load precip
 
 # adjust lat/lon dimensions since the index names are different
 tmin_lons_new = tmin_f['lon'].values[tmin_f['lon'].values > 180] - 360
@@ -98,7 +103,7 @@ def calc_fm100_fm1000(x, pptdur, maxrh, minrh, maxt, mint, lat, tmois, bv, julia
     	daylit = 24.0*(1-np.arccos(np.tan(phi)*np.tan(decl))/3.14159)
     	daylit = daylit.real
 	
-	minrh_sq = ufuncs.square(minrh)
+	minrh_sq = ufuncs.square(minrh).values
     	minrh = minrh.values
 	maxt = maxt.values
 	mint = mint.values
@@ -107,24 +112,22 @@ def calc_fm100_fm1000(x, pptdur, maxrh, minrh, maxt, mint, lat, tmois, bv, julia
     	inds = np.nonzero((minrh > 10) & (minrh <= 50))
     	minrh[inds] = 2.22749 + (0.160107 * minrh[inds]) - (0.014784 * maxt[inds])
     	inds = np.nonzero(minrh > 50)
-    	minrh[inds] = 21.0606 + (0.005565 * (minrh_sq.values[inds])) - (0.00035 * minrh[inds] * maxt[inds]) - (0.483199 * minrh[inds])
+    	minrh[inds] = 21.0606 + (0.005565 * (minrh_sq[inds])) - (0.00035 * minrh[inds] * maxt[inds]) - (0.483199 * minrh[inds])
 	emc1 = minrh
 
-	maxrh_sq = ufuncs.square(maxrh) 
+	maxrh_sq = ufuncs.square(maxrh).values
     	maxrh = maxrh.values 
     	inds = np.nonzero(maxrh <= 10)
     	maxrh[inds] = 0.03229 + (0.281073 * maxrh[inds]) - (0.000578 * maxrh[inds] * mint[inds])
     	inds = np.nonzero((maxrh > 10) & (maxrh <= 50))
     	maxrh[inds] = 2.22749 + (0.160107 * maxrh[inds]) - (0.014784 * mint[inds])
     	inds = np.nonzero((maxrh > 50) & (maxrh <= 80)) 
-    	maxrh[inds] = 21.0606 + (0.005565 * (maxrh_sq.values[inds])) - (0.00035 * maxrh[inds] * mint[inds]) - (0.483199 * maxrh[inds])
+    	maxrh[inds] = 21.0606 + (0.005565 * (maxrh_sq[inds])) - (0.00035 * maxrh[inds] * mint[inds]) - (0.483199 * maxrh[inds])
 	inds = np.nonzero(maxrh > 80) 
-        maxrh[inds] = 21.0606 + (0.005565 * (maxrh_sq.values[inds])) - (0.00035 * maxrh[inds] * mint[inds]) - (0.483199 * maxrh[inds])
+        maxrh[inds] = 21.0606 + (0.005565 * (maxrh_sq[inds])) - (0.00035 * maxrh[inds] * mint[inds]) - (0.483199 * maxrh[inds])
 	emc2 = maxrh 
 
     	emc = (daylit.reshape(maxrh.shape) * emc1 + (24.0 - daylit.reshape(maxrh.shape)) * emc2) / 24.0
-
-    	print("calculated emcs")
 
     	# qc precip duration
 	'''
@@ -157,7 +160,7 @@ def calc_fm100_fm1000(x, pptdur, maxrh, minrh, maxt, mint, lat, tmois, bv, julia
     	
 	tmois[6,:,:] = fm1000['precipitation'].values
 
-    	return(tmois,fm1000,fm100,bv)
+    	return(tmois,fm1000['precipitation'].values,fm100['precipitation'].values,bv)
 
 def kelvin_to_fahrenheit(T):
 	''' 
@@ -216,6 +219,7 @@ fm100_rh = np.ndarray(shape=(ndays, nlat, nlon),  dtype='float')
 
 # ITERATE AND CALCULATE 100 HR AND 1000 HR DFM
 for day in xrange(ndays):
+	start_time = dt.datetime.now() 
 	print("now calculating day %f" % day)
 	t_avg = ((tmax['air_temp_max'].isel(
 					time=day) + tmin['air_temp_min'].isel(time=day)) / 2.0)
@@ -231,15 +235,16 @@ for day in xrange(ndays):
         rhmin = constrain_dataset(rhmin, operator.le, 100, 100)
 	rhmax = constrain_dataset(rhmax, operator.le, 100, 100)
 	'''
-	tmois, fm1000_rh[day, :, :], fm100_rh[day, :, :], bv = calc_fm100_fm1000(
-										x, pptdur.isel(time=day), rhmax, rhmin,
-										kelvin_to_fahrenheit(tmax['air_temp_max'].isel(time=day)),
-										kelvin_to_fahrenheit(tmin['air_temp_min'].isel(time=day)),
-										lats, tmois, bv, julians[day], ymc
-										)
+	tmois, fm1000_rh[float(day), :, :], fm100_rh[float(day), :, :], bv = calc_fm100_fm1000(
+												x, pptdur.isel(time=day), rhmax, rhmin, 
+												kelvin_to_fahrenheit(tmax['air_temp_max'].isel(time=day)), 
+												kelvin_to_fahrenheit(tmin['air_temp_min'].isel(time=day)), 
+												lats, tmois, bv, np.float(julians[day]), ymc
+												)
 
-	ymc = fm100_rh[day, :, :]
-	print(day)
+	ymc = fm100_rh[float(day), :, :]
+	end_time = dt.datetime.now()
+	print('Duration: {}'.format(end_time - start_time)) 
 
 print("finished iteration loop")
 
