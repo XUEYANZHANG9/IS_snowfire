@@ -20,22 +20,23 @@ scenario = args[1]
 # scenario="historical"
 
 chunk_number = 20
-direc = '/raid/gergel/%s' % "tmin"
+direc = '/fast/gergel'
+#direc = '/raid/gergel/%s' % "tmin"
 tmin_file = "%s_%s_%s.nc" % (model, scenario, "tasmin")
 tmin_f = xray.open_dataset(os.path.join(direc, tmin_file), chunks={'time': chunk_number}) #  load tmin
 #tmin_f = xray.open_dataset(os.path.join(direc, tmin_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load tmin
 
-direc = '/raid/gergel/%s' % "tmax"
+#direc = '/raid/gergel/%s' % "tmax"
 tmax_file = "%s_%s_%s.nc" % (model, scenario, "tasmax")
 tmax_f = xray.open_dataset(os.path.join(direc, tmax_file), chunks={'time': chunk_number}) #  load tmax
 #tmax_f = xray.open_dataset(os.path.join(direc, tmax_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load tmax
 
-direc = '/raid/gergel/%s' % "rh"
+#direc = '/raid/gergel/%s' % "rh"
 q_file = "%s_%s_%s.nc" % (model, scenario, "huss")
 q_f = xray.open_dataset(os.path.join(direc, q_file), chunks={'time': chunk_number}) #  load specific humidity
 #q_f = xray.open_dataset(os.path.join(direc, q_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load specific humidity
 
-direc = '/raid/gergel/pptdur'
+#direc = '/raid/gergel/pptdur'
 pr_file = "%s_%s.nc" % (model, scenario)
 pptdur = xray.open_dataset(os.path.join(direc, pr_file), chunks={'time': chunk_number}) #  load precip
 #pptdur = xray.open_dataset(os.path.join(direc, pr_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load precip
@@ -199,7 +200,9 @@ nlat = len(q.lat)
 nlon = len(q.lon)
 
 # get gridcell elevations
-h = np.zeros((nlat, nlon))
+# h = np.zeros((nlat, nlon))
+h_data = np.load('/raid/gergel/elevations.npz') 
+h = h_data['elevs'] 
 
 # get list of lats for each day
 lons_grid,lats_grid = np.meshgrid(q.lon,q.lat)
@@ -274,7 +277,8 @@ ds['time'] = xray.DataArray(
 			attrs={'long_name': 'time'})
 
 # WRITE TO NETCDF
-direc = '/raid/gergel/dfm' 
+direc = '/fast/gergel'
+#direc = '/raid/gergel/dfm' 
 if not os.path.exists(direc):
 	os.makedirs(direc)  # if directory doesn't exist, create it
 # save to netcdf
