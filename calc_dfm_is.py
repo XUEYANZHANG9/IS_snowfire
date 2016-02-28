@@ -13,32 +13,37 @@ sys.stdout.flush()
 
 # INPUTS
 args = sys.argv[1:]
-model = args[0]
-scenario = args[1]
+chunk = args[0]
+model = args[1]
+scenario = args[2]
 
 # model = "CNRM-CM5"
 # scenario="historical"
 
-chunk_number = 20
+#chunk_number = 20
 direc = '/fast/gergel'
 #direc = '/raid/gergel/%s' % "tmin"
 tmin_file = "%s_%s_%s.nc" % (model, scenario, "tasmin")
-tmin_f = xray.open_dataset(os.path.join(direc, tmin_file), chunks={'time': chunk_number}) #  load tmin
+tmin_f = xray.open_dataset(os.path.join(direc, tmin_file))
+#tmin_f = xray.open_dataset(os.path.join(direc, tmin_file), chunks={'time': chunk_number}) #  load tmin
 #tmin_f = xray.open_dataset(os.path.join(direc, tmin_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load tmin
 
 #direc = '/raid/gergel/%s' % "tmax"
 tmax_file = "%s_%s_%s.nc" % (model, scenario, "tasmax")
-tmax_f = xray.open_dataset(os.path.join(direc, tmax_file), chunks={'time': chunk_number}) #  load tmax
+tmax_f = xray.open_dataset(os.path.join(direc, tmax_file))
+#tmax_f = xray.open_dataset(os.path.join(direc, tmax_file), chunks={'time': chunk_number}) #  load tmax
 #tmax_f = xray.open_dataset(os.path.join(direc, tmax_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load tmax
 
 #direc = '/raid/gergel/%s' % "rh"
 q_file = "%s_%s_%s.nc" % (model, scenario, "huss")
-q_f = xray.open_dataset(os.path.join(direc, q_file), chunks={'time': chunk_number}) #  load specific humidity
+q_f = xray.open_dataset(os.path.join(direc, q_file))
+#q_f = xray.open_dataset(os.path.join(direc, q_file), chunks={'time': chunk_number}) #  load specific humidity
 #q_f = xray.open_dataset(os.path.join(direc, q_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load specific humidity
 
 #direc = '/raid/gergel/pptdur'
 pr_file = "%s_%s.nc" % (model, scenario)
-pptdur = xray.open_dataset(os.path.join(direc, pr_file), chunks={'time': chunk_number}) #  load precip
+pptdur = xray.open_dataset(os.path.join(direc, pr_file))
+#pptdur = xray.open_dataset(os.path.join(direc, pr_file), chunks={'time': chunk_number}) #  load precip
 #pptdur = xray.open_dataset(os.path.join(direc, pr_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load precip
 
 # adjust lat/lon dimensions since the index names are different
@@ -54,18 +59,52 @@ swe_mask = xray.open_dataset(swe_mask_file)
 swe_mask.rename({"Latitude": "lat", "Longitude": "lon", "Time": "time"}, inplace=True)
 swe_mask = swe_mask.squeeze()
 
-def slice_dataset(ds_array, ds_to_slice): 
+def slice_dataset_space(ds_array, ds_to_slice): 
 	'''
 	slices second Dataset to fit first Dataset
 	'''
 	swe_mask_align, array_align = xray.align(ds_array, ds_to_slice, join='inner', copy=False)
 	return(array_align)
 
+def slice_dataset_time(ds, start_time, end_time):
+	'''
+	slices dataset with start and end times 
+	''' 
+	ds_timeslice = ds.sel(time=slice(start_time, end_time)) 
+	return(ds_timeslice) 
 
 # Dataset join
-tmax = slice_dataset(swe_mask, tmax_f)
-tmin = slice_dataset(swe_mask, tmin_f)
-q = slice_dataset(swe_mask,q_f)
+tmax = slice_dataset_space(swe_mask, tmax_f)
+tmin = slice_dataset_space(swe_mask, tmin_f)
+q = slice_dataset_space(swe_mask, q_f)
+
+# slice along time to get climatology period 
+if (scenario == "historical"):
+	start = '1969-10-1'
+	filestart = '1970'
+	end = '1999-9-30' 
+	fileend = '1999'
+else: 
+	if (chunk == "chunk1"):
+		start = '2009-10-1'
+		filestart = '2010'
+		end = '2039-9-30' 
+		fileend = '2039' 
+	elif (chunk == "chunk2"):
+		start = '2039-10-1'
+                filestart = '2040'
+                end = '2069-9-30'
+                fileend = '2069'
+	else: 
+		start = '2069-10-1'
+                filestart = '2070'
+                end = '2099-9-30'
+                fileend = '2099'
+
+tmax = slice_dataset_time(tmax, start, end)  
+tmin = slice_dataset_time(tmin, start, end) 
+q = slice_dataset_time(q, start, end)
+pptdur = slice_dataset_time(pptdur, start, end)  	
 
 # get julian days
 julians = pd.DatetimeIndex(np.asarray(tmin.time)).dayofyear
@@ -78,9 +117,9 @@ def constrain_dataset(da,bool_operator,constrain_value,fill_value):
 	'''
     	import operator
     	import xray
-    	da = da.fillna(-9999)
-    	da = da.where((bool_operator(da, constrain_value )) & ( da == -9999)).fillna( fill_value)
-    	da = da.where(da != -9999).fillna(np.nan)
+    	da = da.fillna(fill_value)
+    	da = da.where((bool_operator(da, constrain_value )) & ( da == fill_value)).fillna( fill_value)
+    	da = da.where(da != fill_value).fillna(np.nan)
     	return(da)
 
 def calc_fm100_fm1000(x, pptdur, maxrh, minrh, maxt, mint, lat, tmois, bv, julians, ymc100):
@@ -131,6 +170,10 @@ def calc_fm100_fm1000(x, pptdur, maxrh, minrh, maxt, mint, lat, tmois, bv, julia
     	emc = (daylit.reshape(maxrh.shape) * emc1 + (24.0 - daylit.reshape(maxrh.shape)) * emc2) / 24.0
 
     	# qc precip duration
+	pptdur_values = pptdur['precipitation'].values 
+	pptdur_values[pptdur_values > 8] = 8
+	pptdur['precipitation'].values = pptdur_values 
+	
 	'''
     	pptdur = constrain_dataset(pptdur, operator.le, 8, 8)
     	pptdur = constrain_dataset(pptdur, operator.gt, 0, 0)
@@ -271,17 +314,18 @@ ds['fm1000'] = xray.DataArray(
 			fm1000_rh, dims=('time','lat', 'lon'),name='fm1000',
 			coords={'time': time_da, 'lat': lat_da, 'lon': lon_da},
 			attrs={'long_name': '1000 hr dead fuel moisture'})
+'''
 ds['time'] = xray.DataArray(
 			q.time, dims=('time','lat', 'lon'), name='time',
 			coords={'time': time_da, 'lat': lat_da, 'lon': lon_da},
 			attrs={'long_name': 'time'})
-
+'''
 # WRITE TO NETCDF
 direc = '/fast/gergel'
 #direc = '/raid/gergel/dfm' 
 if not os.path.exists(direc):
 	os.makedirs(direc)  # if directory doesn't exist, create it
 # save to netcdf
-filename = '%s_%s.nc' % (model, scenario)
+filename = '%s_%s_%s_%s.nc' % (model, scenario, filestart, fileend)
 ds.to_netcdf(os.path.join(direc, filename))
 print("saved netcdf to %s " % os.path.join(direc, filename))
