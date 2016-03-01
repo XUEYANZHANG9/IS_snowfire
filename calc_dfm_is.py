@@ -20,8 +20,13 @@ scenario = args[2]
 # model = "CNRM-CM5"
 # scenario="historical"
 
+if (scenario == "historical"):
+	print("now calculating dfm for %s %s" % (model, scenario) ) 
+else: 
+	print("now calculating dfm for %s %s %s" % (model, scenario, chunk) ) 
+
 #chunk_number = 20
-direc = '/fast/gergel'
+direc = '/state/partition1'
 #direc = '/raid/gergel/%s' % "tmin"
 tmin_file = "%s_%s_%s.nc" % (model, scenario, "tasmin")
 tmin_f = xray.open_dataset(os.path.join(direc, tmin_file))
@@ -30,6 +35,7 @@ tmin_f = xray.open_dataset(os.path.join(direc, tmin_file))
 
 #direc = '/raid/gergel/%s' % "tmax"
 tmax_file = "%s_%s_%s.nc" % (model, scenario, "tasmax")
+print(os.path.join(direc,tmax_file)) 
 tmax_f = xray.open_dataset(os.path.join(direc, tmax_file))
 #tmax_f = xray.open_dataset(os.path.join(direc, tmax_file), chunks={'time': chunk_number}) #  load tmax
 #tmax_f = xray.open_dataset(os.path.join(direc, tmax_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load tmax
@@ -321,11 +327,11 @@ ds['time'] = xray.DataArray(
 			attrs={'long_name': 'time'})
 '''
 # WRITE TO NETCDF
-direc = '/fast/gergel'
+#direc = '/fast/gergel'
 #direc = '/raid/gergel/dfm' 
 if not os.path.exists(direc):
 	os.makedirs(direc)  # if directory doesn't exist, create it
 # save to netcdf
 filename = '%s_%s_%s_%s.nc' % (model, scenario, filestart, fileend)
-ds.to_netcdf(os.path.join(direc, filename))
+ds.to_netcdf(os.path.join(direc, filename), format= {'NETCDF4'})
 print("saved netcdf to %s " % os.path.join(direc, filename))
