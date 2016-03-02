@@ -4,7 +4,7 @@
 #$ -j y
 #$ -S /bin/bash
 #$ -q default.q@compute-0-1,default.q@compute-0-17.local,default.q@compute-0-18.local,default.q@compute-0-19.local,default.q@compute-0-2,default.q@compute-2-3 
-#$ -N canesm_45
+#$ -N ipsl
 #$ -p -5 
 
 # which python 
