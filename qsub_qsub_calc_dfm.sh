@@ -6,7 +6,7 @@ scenarios="historical rcp45 rcp85"
 models="IPSL-CM5A-MR"
 #scenarios="rcp45"
 chunks="chunk1 chunk2 chunk3" 
-#chunks="chunk1 chunk3" 
+#chunks="chunk1" 
 
 for model in $models
 do

@@ -42,6 +42,7 @@ tmax_f = xray.open_dataset(os.path.join(direc, tmax_file))
 
 #direc = '/raid/gergel/%s' % "rh"
 q_file = "%s_%s_%s.nc" % (model, scenario, "huss")
+print(os.path.join(direc,q_file)) 
 q_f = xray.open_dataset(os.path.join(direc, q_file))
 #q_f = xray.open_dataset(os.path.join(direc, q_file), chunks={'time': chunk_number}) #  load specific humidity
 #q_f = xray.open_dataset(os.path.join(direc, q_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load specific humidity
@@ -303,6 +304,7 @@ print("finished iteration loop")
 # CONSTRUCT DATASET
 
 ds = xray.Dataset()
+
 lon_da = xray.DataArray(
 			q.lon, dims=('lon'), name='longitude',
 			attrs={'long_name': 'longitude coordinate'})
@@ -320,12 +322,13 @@ ds['fm1000'] = xray.DataArray(
 			fm1000_rh, dims=('time','lat', 'lon'),name='fm1000',
 			coords={'time': time_da, 'lat': lat_da, 'lon': lon_da},
 			attrs={'long_name': '1000 hr dead fuel moisture'})
+
 '''
 ds['time'] = xray.DataArray(
 			q.time, dims=('time','lat', 'lon'), name='time',
 			coords={'time': time_da, 'lat': lat_da, 'lon': lon_da},
 			attrs={'long_name': 'time'})
-'''
+''' 
 # WRITE TO NETCDF
 #direc = '/fast/gergel'
 #direc = '/raid/gergel/dfm' 
@@ -333,5 +336,5 @@ if not os.path.exists(direc):
 	os.makedirs(direc)  # if directory doesn't exist, create it
 # save to netcdf
 filename = '%s_%s_%s_%s.nc' % (model, scenario, filestart, fileend)
-ds.to_netcdf(os.path.join(direc, filename), format= {'NETCDF4'})
+ds.to_netcdf(os.path.join(direc, filename), format='NETCDF4')
 print("saved netcdf to %s " % os.path.join(direc, filename))
