@@ -3,8 +3,8 @@
 #$ -cwd
 #$ -j y
 #$ -S /bin/bash
-#$ -q default.q@compute-0-1,default.q@compute-0-17.local,default.q@compute-0-18.local,default.q@compute-0-19.local,default.q@compute-0-2,default.q@compute-2-3 
-#$ -N ipsl
+#$ -q default.q 
+#$ -N hadgemes
 #$ -p -5 
 
 # which python 
@@ -13,16 +13,19 @@ source activate /home/gergel/anaconda/envs/my_env
 
 # default.q@compute-0-17.local,default.q@compute-0-18.local,default.q@compute-0-19.local,default.q@compute-0-0.local,default.q@compute-0-2.local
 
+# default.q@compute-0-17.local,default.q@compute-0-18.local,default.q@compute-0-19.local,default.q@compute-0-0.local,default.q@compute-0-2.local
+
+# default.q@compute-0-1,default.q@compute-0-17.local,default.q@compute-0-18.local,default.q@compute-0-19.local,default.q@compute-0-2,default.q@compute-2-3
 
 #python /raid9/gergel/agg_snowpack/calc_dfm_gridcell_is.py $model $scenario $lat $lon
 
-direc="/state/partition1"
+#direc="/state/partition1"
 #direc="/fast/gergel" 
 
-cp /raid/gergel/rh/${model}_${scenario}_huss.nc ${direc}
-cp /raid/gergel/tmax/${model}_${scenario}_tasmax.nc ${direc}
-cp /raid/gergel/tmin/${model}_${scenario}_tasmin.nc ${direc}
-cp /raid/gergel/pptdur/${model}_${scenario}.nc ${direc}
+#cp /raid/gergel/rh/${model}_${scenario}_huss.nc ${direc}
+#cp /raid/gergel/tmax/${model}_${scenario}_tasmax.nc ${direc}
+#cp /raid/gergel/tmin/${model}_${scenario}_tasmin.nc ${direc}
+#cp /raid/gergel/pptdur/${model}_${scenario}.nc ${direc}
 
 python /raid9/gergel/agg_snowpack/calc_dfm_is.py $chunk $model $scenario 
 
@@ -39,10 +42,10 @@ else
 	chunk="2070_2099"
 fi
  
-cp ${direc}/${model}_${scenario}_${chunk}.nc /raid/gergel/dfm/
+#cp ${direc}/${model}_${scenario}_${chunk}.nc /raid/gergel/dfm/
 
-rm ${direc}/${model}_${scenario}_huss.nc
-rm ${direc}/${model}_${scenario}_tasmax.nc
-rm ${direc}/${model}_${scenario}_tasmin.nc
-rm ${direc}/${model}_${scenario}.nc
-rm ${direc}/${model}_${scenario}_${chunk}.nc
+#rm ${direc}/${model}_${scenario}_huss.nc
+#rm ${direc}/${model}_${scenario}_tasmax.nc
+#rm ${direc}/${model}_${scenario}_tasmin.nc
+#rm ${direc}/${model}_${scenario}.nc
+#rm ${direc}/${model}_${scenario}_${chunk}.nc
