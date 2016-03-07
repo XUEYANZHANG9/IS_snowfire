@@ -60,6 +60,12 @@ tmin_f['lon'] = tmin_lons_new
 tmax_f['lon'] = tmin_lons_new
 q_f['lon'] = tmin_lons_new
 
+## deal with latitude rounding issue
+tmin_f['lat'] = np.round(tmin_f['lat'], 5)
+tmax_f['lat'] = np.round(tmax_f['lat'], 5) 
+q_f['lat'] = np.round(q_f['lat'], 5) 
+pptdur['lat'] = np.round(pptdur['lat'], 5) 
+
 # cut out conus east of 103 for each variable
 swe_mask_file = '/raid9/gergel/agg_snowpack/goodleap/SWE/histmeanmask.nc' #  1s are swe, 0s are no swe
 swe_mask = xray.open_dataset(swe_mask_file)
