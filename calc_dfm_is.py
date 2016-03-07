@@ -25,53 +25,51 @@ if (scenario == "historical"):
 else: 
 	print("now calculating dfm for %s %s %s" % (model, scenario, chunk) ) 
 
-#chunk_number = 20
 #direc = '/fast/gergel'
 #direc = '/state/partition1'
 direc = '/raid/gergel/%s' % "tmin"
 tmin_file = "%s_%s_%s.nc" % (model, scenario, "tasmin")
 tmin_f = xray.open_dataset(os.path.join(direc, tmin_file))
 #tmin_f = xray.open_dataset(os.path.join(direc, tmin_file), chunks={'time': chunk_number}) #  load tmin
-#tmin_f = xray.open_dataset(os.path.join(direc, tmin_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load tmin
 
 direc = '/raid/gergel/%s' % "tmax"
 tmax_file = "%s_%s_%s.nc" % (model, scenario, "tasmax")
 print(os.path.join(direc,tmax_file)) 
 tmax_f = xray.open_dataset(os.path.join(direc, tmax_file))
 #tmax_f = xray.open_dataset(os.path.join(direc, tmax_file), chunks={'time': chunk_number}) #  load tmax
-#tmax_f = xray.open_dataset(os.path.join(direc, tmax_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load tmax
 
 direc = '/raid/gergel/%s' % "rh"
 q_file = "%s_%s_%s.nc" % (model, scenario, "huss")
 print(os.path.join(direc,q_file)) 
 q_f = xray.open_dataset(os.path.join(direc, q_file))
 #q_f = xray.open_dataset(os.path.join(direc, q_file), chunks={'time': chunk_number}) #  load specific humidity
-#q_f = xray.open_dataset(os.path.join(direc, q_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load specific humidity
 
-direc = '/raid/gergel/pptdur'
-pr_file = "%s_%s.nc" % (model, scenario)
-pptdur = xray.open_dataset(os.path.join(direc, pr_file))
+direc = '/raid/gergel/precip'
+pr_file = "%s_%s_%s.nc" % (model, scenario, "pr")
+pr_f = xray.open_dataset(os.path.join(direc, pr_file))
 #pptdur = xray.open_dataset(os.path.join(direc, pr_file), chunks={'time': chunk_number}) #  load precip
-#pptdur = xray.open_dataset(os.path.join(direc, pr_file), chunks={'lat': chunk_number, 'lon': chunk_number}) #  load precip
 
 # adjust lat/lon dimensions since the index names are different
 tmin_lons_new = tmin_f['lon'].values[tmin_f['lon'].values > 180] - 360
 tmin_f['lon'] = tmin_lons_new
 tmax_f['lon'] = tmin_lons_new
 q_f['lon'] = tmin_lons_new
+pr_f['lon'] = tmin_lons_new
 
 ## deal with latitude rounding issue
 tmin_f['lat'] = np.round(tmin_f['lat'], 5)
 tmax_f['lat'] = np.round(tmax_f['lat'], 5) 
 q_f['lat'] = np.round(q_f['lat'], 5) 
-pptdur['lat'] = np.round(pptdur['lat'], 5) 
+pr_f['lat'] = np.round(pr_f['lat'], 5) 
 
-# cut out conus east of 103 for each variable
-swe_mask_file = '/raid9/gergel/agg_snowpack/goodleap/SWE/histmeanmask.nc' #  1s are swe, 0s are no swe
+## cut out conus east of 103 for each variable 
+swe_mask_file = '/raid9/gergel/agg_snowpack/goodleap/SWE/histmeanmask_mod.nc' ## 1s are swe, 0s are no swe 
 swe_mask = xray.open_dataset(swe_mask_file)
 # rename dimensions
 swe_mask.rename({"Latitude": "lat", "Longitude": "lon", "Time": "time"}, inplace=True)
 swe_mask = swe_mask.squeeze()
+
+pdur_full = xray.open_dataset('/raid/gergel/pduration_mod.nc') # this is the one that I regridded ot 6 x 6 km using cdo remapcon and /raid9/gergel/agg_snowpack/keepextracopies/grid_info_mine
 
 def slice_dataset_space(ds_array, ds_to_slice): 
 	'''
@@ -91,6 +89,7 @@ def slice_dataset_time(ds, start_time, end_time):
 tmax = slice_dataset_space(swe_mask, tmax_f)
 tmin = slice_dataset_space(swe_mask, tmin_f)
 q = slice_dataset_space(swe_mask, q_f)
+pr = slice_dataset_space(swe_mask, pr_f) 
 
 # slice along time to get climatology period 
 if (scenario == "historical"):
@@ -118,23 +117,12 @@ else:
 tmax = slice_dataset_time(tmax, start, end)  
 tmin = slice_dataset_time(tmin, start, end) 
 q = slice_dataset_time(q, start, end)
-pptdur = slice_dataset_time(pptdur, start, end)  	
+pr = slice_dataset_time(pr, start, end)  	
 
 # get julian days
 julians = pd.DatetimeIndex(np.asarray(tmin.time)).dayofyear
 
 # 100-hr and 1000-hr DFM FUNCTION
-
-def constrain_dataset(da,bool_operator,constrain_value,fill_value):
-	''' 
-	constrains masked values of dataset to be above/below given value,fills with given value and accounts for possible existing nans 
-	'''
-    	import operator
-    	import xray
-    	da = da.fillna(fill_value)
-    	da = da.where((bool_operator(da, constrain_value )) & ( da == fill_value)).fillna( fill_value)
-    	da = da.where(da != fill_value).fillna(np.nan)
-    	return(da)
 
 def calc_fm100_fm1000(x, pptdur, maxrh, minrh, maxt, mint, lat, tmois, bv, julians, ymc100):
     	'''
@@ -159,6 +147,10 @@ def calc_fm100_fm1000(x, pptdur, maxrh, minrh, maxt, mint, lat, tmois, bv, julia
 	
 	minrh_sq = ufuncs.square(minrh).values
     	minrh = minrh.values
+
+	# qc min rh to be less than 100 
+	minrh[minrh > 100] = 100	
+
 	maxt = maxt.values
 	mint = mint.values
     	inds = np.nonzero(minrh <= 10)
@@ -171,6 +163,10 @@ def calc_fm100_fm1000(x, pptdur, maxrh, minrh, maxt, mint, lat, tmois, bv, julia
 
 	maxrh_sq = ufuncs.square(maxrh).values
     	maxrh = maxrh.values 
+	
+	# qc max rh to be less than 100
+	maxrh[maxrh > 100] = 100
+
     	inds = np.nonzero(maxrh <= 10)
     	maxrh[inds] = 0.03229 + (0.281073 * maxrh[inds]) - (0.000578 * maxrh[inds] * mint[inds])
     	inds = np.nonzero((maxrh > 10) & (maxrh <= 50))
@@ -187,11 +183,6 @@ def calc_fm100_fm1000(x, pptdur, maxrh, minrh, maxt, mint, lat, tmois, bv, julia
 	pptdur_values = pptdur['precipitation'].values 
 	pptdur_values[pptdur_values > 8] = 8
 	pptdur['precipitation'].values = pptdur_values 
-	
-	'''
-    	pptdur = constrain_dataset(pptdur, operator.le, 8, 8)
-    	pptdur = constrain_dataset(pptdur, operator.gt, 0, 0)
-	'''
 
     	bndry1 = ((24.0 - pptdur) * emc + (0.5 * pptdur + 41) * pptdur) / 24.0
     	fm100 = ((bndry1 - ymc100) * fr100) + ymc100
@@ -280,7 +271,7 @@ fm100_rh = np.ndarray(shape=(ndays, nlat, nlon),  dtype='float')
 # ITERATE AND CALCULATE 100 HR AND 1000 HR DFM
 for day in xrange(ndays):
 	start_time = dt.datetime.now() 
-	print("now calculating day %f" % day)
+	print("day %f" % day)
 	t_avg = ((tmax['air_temp_max'].isel(
 					time=day) + tmin['air_temp_min'].isel(time=day)) / 2.0)
 	e_s = estimate__e_s(t_avg)  # saturation vapor pressure
@@ -290,18 +281,15 @@ for day in xrange(ndays):
 	ambvp = (RH * e_s) / 100.0
 	rhmax = 100.0 * (ambvp['specific_humidity'] / satvpn['air_temp_min'])
 	rhmin = 100.0 * (ambvp['specific_humidity'] / satvpx['air_temp_max'])
-	'''
-	# constrain RH to be 100 % or less
-        rhmin = constrain_dataset(rhmin, operator.le, 100, 100)
-	rhmax = constrain_dataset(rhmax, operator.le, 100, 100)
-	'''
+	pr_day = pr.isel(time=day) 
+	pptdur = np.round(24 * (1 - (ufuncs.exp(-pdur_full['pdur'] * pr_day)))) # this is the empirical transform to calculate pptdur using beta from Matt Jolly (USFS) 
+
 	tmois, fm1000_rh[float(day), :, :], fm100_rh[float(day), :, :], bv = calc_fm100_fm1000(
-												x, pptdur.isel(time=day), rhmax, rhmin, 
+												x, pptdur, rhmax, rhmin, 
 												kelvin_to_fahrenheit(tmax['air_temp_max'].isel(time=day)), 
 												kelvin_to_fahrenheit(tmin['air_temp_min'].isel(time=day)), 
 												lats, tmois, bv, np.float(julians[day]), ymc
 												)
-
 	ymc = fm100_rh[float(day), :, :]
 	end_time = dt.datetime.now()
 	print('Duration: {}'.format(end_time - start_time)) 
