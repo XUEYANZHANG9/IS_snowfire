@@ -3,8 +3,8 @@
 #$ -cwd
 #$ -j y
 #$ -S /bin/bash
-#$ -q default.q@compute-0-2.local
-#$ -N ccsm_rcp85_chunk1
+#$ -q default.q@compute-0-1.local
+#$ -N canesm_hist
 #$ -p -5 
 
 # default.q@compute-0-17.local,default.q@compute-0-18.local,default.q@compute-0-19.local,default.q@compute-0-2.local,default.q@compute-2-3.local,default.q@compute-0-1.local
