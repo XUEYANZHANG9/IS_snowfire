@@ -26,25 +26,27 @@ else:
 	print("now calculating dfm for %s %s %s" % (model, scenario, chunk) ) 
 
 #direc = '/fast/gergel'
+direc = '/state/partition1' 
+
 #direc = '/state/partition1'
-direc = '/raid/gergel/%s' % "tmin"
+#direc = '/raid/gergel/%s' % "tmin"
 tmin_file = "%s_%s_%s.nc" % (model, scenario, "tasmin")
 tmin_f = xray.open_dataset(os.path.join(direc, tmin_file))
 #tmin_f = xray.open_dataset(os.path.join(direc, tmin_file), chunks={'time': chunk_number}) #  load tmin
 
-direc = '/raid/gergel/%s' % "tmax"
+#direc = '/raid/gergel/%s' % "tmax"
 tmax_file = "%s_%s_%s.nc" % (model, scenario, "tasmax")
 print(os.path.join(direc,tmax_file)) 
 tmax_f = xray.open_dataset(os.path.join(direc, tmax_file))
 #tmax_f = xray.open_dataset(os.path.join(direc, tmax_file), chunks={'time': chunk_number}) #  load tmax
 
-direc = '/raid/gergel/%s' % "rh"
+#direc = '/raid/gergel/%s' % "rh"
 q_file = "%s_%s_%s.nc" % (model, scenario, "huss")
 print(os.path.join(direc,q_file)) 
 q_f = xray.open_dataset(os.path.join(direc, q_file))
 #q_f = xray.open_dataset(os.path.join(direc, q_file), chunks={'time': chunk_number}) #  load specific humidity
 
-direc = '/raid/gergel/precip'
+#direc = '/raid/gergel/precip'
 pr_file = "%s_%s_%s.nc" % (model, scenario, "pr")
 pr_f = xray.open_dataset(os.path.join(direc, pr_file))
 #pptdur = xray.open_dataset(os.path.join(direc, pr_file), chunks={'time': chunk_number}) #  load precip
@@ -326,7 +328,7 @@ ds['time'] = xray.DataArray(
 ''' 
 # WRITE TO NETCDF
 #direc = '/fast/gergel'
-direc = '/raid/gergel/dfm' 
+#direc = '/raid/gergel/dfm' 
 if not os.path.exists(direc):
 	os.makedirs(direc)  # if directory doesn't exist, create it
 # save to netcdf
