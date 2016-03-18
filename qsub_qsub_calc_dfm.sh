@@ -3,10 +3,10 @@
 #models="NorESM1-M CNRM-CM5 CSIRO-Mk3-6-0 CanESM2 MIROC5 bcc-csm1-1-m HadGEM2-CC365 HadGEM2-ES365 CCSM4 IPSL-CM5A-MR"
 #scenarios="historical rcp45 rcp85"
 
-models="CanESM2"
-scenarios="historical"
+models="IPSL-CM5A-MR"
+scenarios="rcp45"
 #chunks="chunk1 chunk2 chunk3" 
-chunks="chunk1" 
+chunks="chunk3" 
 
 for model in $models
 do
