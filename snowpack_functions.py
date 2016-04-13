@@ -481,7 +481,7 @@ def make_map(fs, label_parallels=None, label_meridians=None):
         m.drawparallels(np.arange(-90.,120.,10.),labels=[1,0,0,0],size=fs) # draw parallels
     if label_meridians:
         m.drawmeridians(np.arange(0.,420.,10.),labels=[0,0,0,1],size=fs) # draw meridians
-    m.drawlsmask(land_color='silver',ocean_color='lightskyblue',lakes=True,resolution='c')
+    m.drawlsmask(land_color='silver',ocean_color='lightblue',lakes=True,resolution='c')
     return(m)
 
 def mesh_gridify(lats,lons,data):
