@@ -465,6 +465,7 @@ def make_map(fs, label_parallels=None, label_meridians=None):
     """
     
     from mpl_toolkits.basemap import Basemap
+    import numpy as np
     ## 
     m=Basemap(llcrnrlon=-125,llcrnrlat=31,urcrnrlon = -102.5,urcrnrlat=50,projection='cyl',lat_1=33,lat_2=42,lon_0=-110,
             resolution='i',fix_aspect=True)
