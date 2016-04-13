@@ -51,3 +51,32 @@ def nfdrs_climate_class(lon):
         wetrat = 0.05
     return(climate_class,wetrat)
 
+def make_map(fs, label_parallels=None, label_meridians=None):
+    """
+    function that creates map using Basemap. 
+    
+    Requires fontsize, and optional arguments governing labels for parallels and meridians. 
+    
+    Returns matplotlib plotting object. 
+    """
+
+    from mpl_toolkits.basemap import Basemap
+    import numpy as np
+    ## 
+    m=Basemap(llcrnrlon=-125,llcrnrlat=31,urcrnrlon = -102.5,urcrnrlat=50,projection='cyl',lat_1=33,lat_2=42,lon_0=-110,
+            resolution='i',fix_aspect=True)
+    # m.drawcoastlines()
+    m.drawstates()
+    m.drawcountries()
+    m.drawmapboundary()
+
+    m.drawparallels(np.arange(-90.,120.,10.)) # draw parallels
+    m.drawmeridians(np.arange(0.,420.,10.)) # draw meridians
+
+    if label_parallels:
+        m.drawparallels(np.arange(-90.,120.,10.),labels=[1,0,0,0],size=fs) # draw parallels
+    if label_meridians:
+        m.drawmeridians(np.arange(0.,420.,10.),labels=[0,0,0,1],size=fs) # draw meridians
+    m.drawlsmask(land_color='silver',ocean_color='lightblue',lakes=True,resolution='c')
+    return(m)
+
