@@ -1,8 +1,5 @@
 # coding: utf-8
 
-# In[48]:
-
-# get_ipython().magic(u'matplotlib inline')
 import matplotlib
 matplotlib.use('Agg')
 import xarray as xray
@@ -11,7 +8,7 @@ import numpy as np
 import sys
 import pandas as pd
 import matplotlib.pyplot as plt
-
+from dfm_functions import make_map 
 
 # In[49]:
 
@@ -80,9 +77,6 @@ lp = 20
 
 f, axes = plt.subplots(nrows=1, ncols=2, figsize=(20,6))
 
-ax = axes[0]
-plt.sca(ax)
-
 direc = '/raid/gergel/dfm/%s' % 'rcp85_2080s'
 
 # average over models 
@@ -132,7 +126,15 @@ v_dfm_low = v.where(mask_domain_lowlands == 1)
 vmin=-100
 vmax=100 
 
-img = v_dfm_mtns.plot(ax=ax, vmin=vmin, vmax=vmax, cmap='bwr_r', add_labels=False, add_colorbar=False)
+ax = axes[0]
+plt.sca(ax)
+
+m = make_map(fs, label_parallels=True, label_meridians=True) 
+
+x,y = map(v.lon, v.lat)
+
+# img = v_dfm_mtns.plot(ax=ax, vmin=vmin, vmax=vmax, cmap='bwr_r', add_labels=False, add_colorbar=False)
+img = m.pcolormesh(x, y, v_dfm_mtns.to_masked_array(), cmap='bwr_r', vmin=vmin, vmax=vmax) 
 cbar = plt.colorbar(img)
 cbar.set_ticks([np.linspace(vmin, vmax, 6, endpoint=True, dtype='int')])
 #cbar.set_ticks([-100, 50, 0, 50, 100])
@@ -147,7 +149,10 @@ plt.rc('font', **font)
 ax = axes[1]
 plt.sca(ax)
 
-img = v_dfm_low.plot(ax=ax, vmin=vmin, vmax=vmax, cmap='bwr_r', add_labels=False, add_colorbar=False)
+m = make_map(fs, label_meridians=True) 
+
+# img = v_dfm_low.plot(ax=ax, vmin=vmin, vmax=vmax, cmap='bwr_r', add_labels=False, add_colorbar=False)
+img = m.pcolormesh(x, y, v_dfm_low.to_masked_array(), cmap='bwr_r', vmin=vmin, vmax=vmax) 
 cbar = plt.colorbar(img)
 cbar.set_ticks([np.linspace(-100, 100, 6, endpoint=True, dtype='int')])
 #cbar.set_ticks([-100, 50, 0, 50, 100])
