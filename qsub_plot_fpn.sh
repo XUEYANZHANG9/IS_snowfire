@@ -3,7 +3,7 @@
 #$ -cwd
 #$ -j y
 #$ -S /bin/bash
-#$ -q default.q
+#$ -q interactive.q
 #$ -N fpn_100
 
 source /home/gergel/.bashrc
