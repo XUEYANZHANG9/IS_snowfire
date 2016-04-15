@@ -90,13 +90,65 @@ def cmap_discretize(cmap, N):
     djet = cmap_discretize(cm.jet, 5)
     imshow(x, cmap=djet)
     """
+    import numpy as np
+    import matplotlib
     if type(cmap) == str:
         cmap = get_cmap(cmap)
-    colors_i = concatenate((linspace(0, 1., N), (0.,0.,0.,0.)))
+    colors_i = np.concatenate((np.linspace(0, 1., N), (0.,0.,0.,0.)))
     colors_rgba = cmap(colors_i)
-    indices = linspace(0, 1., N+1)
+    indices = np.linspace(0, 1., N+1)
     cdict = {}
     for ki,key in enumerate(('red','green','blue')):
         cdict[key] = [ (indices[i], colors_rgba[i-1,ki], colors_rgba[i,ki]) for i in xrange(N+1) ]
     # Return colormap object.
     return matplotlib.colors.LinearSegmentedColormap(cmap.name + "_%d"%N, cdict, 1024)
+
+def unit_test_mask_domain(lats, lons, mask, num_gridcells):
+    if len(lats) != len(lons):
+        raise ValueError('Length of lats not equal to length of lons')
+    if (num_gridcells != len(lats)):
+        raise ValueError('Length of points not equal to the number of gridcells in domain')
+
+
+# In[51]:
+
+def make_mask(direc, ds_lat, ds_lng):
+    import os 
+    import numpy as np
+    import pandas as pd
+
+    # create list of files 
+    txt_files = [i for i in os.listdir(direc)]
+    count_gridcells = 0
+
+    # create list of full lats/lons in domain
+    for i, f in enumerate(txt_files):
+        with open(os.path.join(direc,f)) as file_object:
+            data = pd.read_csv(file_object)
+            lats = data['lat_%s' % f.split('.')[0]]
+            lons = data['lon_%s' % f.split('.')[0]]
+            if i == 0:
+                lats_full = lats
+                lons_full = lons
+                count_gridcells = len(lats)
+            else:
+                lats_full = pd.concat([lats_full, lats])
+                lons_full = pd.concat([lons_full, lons])
+                count_gridcells += len(lats)
+
+    # create set for set query 
+    s = {(l1,l2) for l1,l2 in zip(lats_full,lons_full)}
+
+    # initialize mask array for entire domain
+    mask_domain = np.zeros(shape=(len(ds_lat),len(ds_lng)))
+
+    # create mask for the region 
+    for j, l1 in enumerate(np.asarray(ds_lat)):
+        for k, l2 in enumerate(np.asarray(ds_lng)):
+            if (l1,l2) in s:
+                mask_domain[j,k] = 1
+
+    # test that mask is correct using unit test 
+    unit_test_mask_domain(lats_full, lons_full, mask_domain, count_gridcells)
+    return(mask_domain)
+
