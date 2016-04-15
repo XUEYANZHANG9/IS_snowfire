@@ -29,30 +29,36 @@ v = (u.sel(month=6) + u.sel(month=7) + u.sel(month=8) + u.sel(month=9)) / 4.0
 
 fs = 30 ## fontsize
 nbins = 11
-lp = 30
+lp = 10
 
 
 model = "MIROC5"
 # scenarios = ["historical", "rcp45", "rcp45", "rcp45", "rcp85", "rcp85", "rcp85"]
-scenarios = ["historical", "rcp85", "rcp85", "rcp85"]
-# chunks = ["1970_1999", "2010_2039", "2040_2069", "2070_2099", "2010_2039", "2040_2069", "2070_2099"]
-chunks = ["1970_1999", "2010_2039", "2040_2069", "2070_2099"]
-direcs = ['hist', 'rcp85_2020s', 'rcp85_2050s', 'rcp85_2080s']
-titles = ['1980s', 'RCP 8.5 2020s', 'RCP 8.5. 2050s', 'RCP 8.5. 2080s']
+scenarios = ["historical", "rcp85", "rcp85", "rcp85", "historical", "rcp85", "rcp85", "rcp85"]
+chunks = ["1970_1999", "2010_2039", "2040_2069", "2070_2099", "1970_1999", "2010_2039", "2040_2069", "2070_2099"]
+# chunks = ["1970_1999", "2010_2039", "2040_2069", "2070_2099"]
+direcs = ['hist', 'rcp85_2020s', 'rcp85_2050s', 'rcp85_2080s', 'hist', 'rcp85_2020s', 'rcp85_2050s', 'rcp85_2080s']
+titles = ['1980s', 'RCP 8.5 2020s', 'RCP 8.5 2050s', 'RCP 8.5 2080s']
 direc = '/raid/gergel/dfm'
 
 
 # ## MOUNTAIN RANGES #  
 
-f, axes = plt.subplots(nrows=1, ncols=4, figsize=(40,6))
+f, axes = plt.subplots(nrows=2, ncols=4, figsize=(30,20)) 
 
 # mask domain
-mask_domain = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/mountains', ds.lat, ds.lon)
+mask_domain_mtns = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/mountains', ds.lat, ds.lon)
+mask_domain_lowlands = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/lowlands', ds.lat, ds.lon)
 
 for i, caxes in enumerate(axes):
     ax=caxes
     plt.sca(ax)
     
+    if i < 4:
+	mask_domain = mask_domain_mtns
+    else: 
+	mask_domain = mask_domain_lowlands 
+
     direc = '/raid/gergel/dfm/%s' % direcs[i] 
 
     # average over models 
@@ -78,11 +84,7 @@ for i, caxes in enumerate(axes):
     
     v = ens / total 
     v = v.where(mask_domain == 1)
-
-    if direcs[i] == "rcp85_2080s":
-        fpn = fpn_sum / total
-        fpn_mountains = fpn
-    
+ 
     # plot data
     if (scenarios[i] == "historical"):
 
@@ -91,39 +93,57 @@ for i, caxes in enumerate(axes):
 
         v_hist = v
         # vmax = v_hist.max(['lat','lon'])
-        vmax = 30
-	vmin = v_hist.min(['lat','lon'])
-       	cmap = cmap_discretize(plt.cm.viridis, 6) 
-        img = m.pcolormesh(x, y, v_hist.to_masked_array(), vmin=vmin, vmax=vmax, cmap=cmap) 
-	cbar = plt.colorbar(img, orientation='horizontal')
-        cbar.set_ticks([np.linspace(0, vmax, 6, endpoint=True, dtype='int')])
+        vmin = 0
+	vmax = 28
+       	cmap = cmap_discretize(plt.cm.viridis_r, 7) 
+        img_h = m.pcolormesh(x, y, v_hist.to_masked_array(), vmin=vmin, vmax=vmax, cmap=cmap) 
+	'''
+	cbar = plt.colorbar(img_h, orientation='horizontal')
+        cbar.set_ticks([np.linspace(vmin, vmax, 8, endpoint=True, dtype='int')])
         cbar.set_label('% DFM', rotation='horizontal', labelpad=lp)
-        
+	'''        
+
     else: 
 
 	m = make_map(fs, label_meridians=True)
+
 	x,y = m(v.lon, v.lat) 
         v_diff = v - v_hist
+
 	cmap = cmap_discretize(plt.cm.bwr_r, 6)
 
 	vmin = -6 
 	vmax = 6
 
-        img = m.pcolormesh(x, y, v_diff.to_masked_array(), vmin=vmin, vmax=vmax, cmap=cmap) 
+        img_f = m.pcolormesh(x, y, v_diff.to_masked_array(), vmin=vmin, vmax=vmax, cmap=cmap) 
 	plt.setp(ax.get_yticklabels(), visible=False)
+
+	'''
 	if chunks[i] == "2040_2069":
-        	cbar = plt.colorbar(img)
-        	cbar.set_ticks([np.linspace(vmin, vmax, 6, endpoint=True, dtype='int')])
-        	cbar.set_label('\Delta % Diff DFM', rotation='horizontal', labelpad=lp)
-    
+        	cbar = plt.colorbar(img_f, orientation='horizontal')
+        	cbar.set_ticks([np.linspace(vmin, vmax, 8, endpoint=True, dtype='int')])
+        	cbar.set_label('$\Delta$ % Diff DFM', rotation='horizontal', labelpad=lp)
+        '''
+	
     font = {'size' : fs}
     plt.rc('font', **font)
-    
-    ax.set_title(titles[i], size=fs)
-    #ax.set_xticklabels(size = fs)
+    if i < 4:
+    	ax.set_title(titles[i], size=fs)
     
 # get rid of whitespace between subplots
-plt.tight_layout() 
+plt.subplots_adjust(wspace=None, hspace=None, left=0.05, right=0.98, top=1, bottom=0.16) 
+
+# create colorbars 
+cax1 = plt.axes([0.05, 0.1, 0.20, 0.1]) #[left,vertical, distance from left, height]
+cbar = plt.colorbar(img_h, cax=cax1, orientation='horizontal')
+cbar.set_ticks([np.linspace(0, 28, 8, endpoint=True, dtype='int')])
+cbar.set_label('% DFM', rotation='horizontal', labelpad=lp)
+
+cax2 = plt.axes([0.47, 0.1, 0.35, 0.1]) #[left,vertical, distance from left, height]
+cbar = plt.colorbar(img_f, cax=cax2, orientation='horizontal')
+cbar.set_ticks([np.linspace(vmin, vmax, 8, endpoint=True, dtype='int')])
+cbar.set_label('$\Delta$ % Difference DFM', rotation='horizontal', labelpad=lp)
+
 
 ## save plot
 direc = '/raid/gergel/dfm/plots/fm100'
@@ -174,10 +194,6 @@ for i, caxes in enumerate(axes):
 
     v = ens / total
     v = v.where(mask_domain == 1)
-
-    if direcs[i] == "rcp85_2080s":
-	fpn = fpn_sum / total 
-	fpn_lowlands = fpn 
     
     # plot data
     if (scenarios[i] == "historical"):
@@ -200,11 +216,10 @@ for i, caxes in enumerate(axes):
         x,y = m(v.lon, v.lat)
 
         v_diff = v - v_hist
-        # img = v_diff.plot(ax=ax, add_labels=False, vmin=-4, vmax=4, cmap='bwr', add_colorbar=False)
         img = m.pcolormesh(x, y, v_diff.to_masked_array(), vmin=-4, vmax=4, cmap='bwr') 
 	plt.setp(ax.get_yticklabels(), visible=False)
-        cbar = plt.colorbar(img)
-        cbar.set_ticks([np.linspace(-4, 4, 6, endpoint=True, dtype='int')])
+        cbar = plt.colorbar(img, orientation='horizontal')
+        cbar.set_ticks([np.linspace(-4, 4, 8, endpoint=True, dtype='int')])
         cbar.set_label('% \n Diff \n DFM', rotation='horizontal', labelpad=lp)
     
     font = {'size' : fs}
@@ -213,7 +228,7 @@ for i, caxes in enumerate(axes):
     ax.set_title(titles[i], size=fs)
     
 # get rid of whitespace between subplots
-plt.tight_layout() 
+# plt.tight_layout() 
 
 ## save plot
 direc = '/raid/gergel/dfm/plots/fm100'
