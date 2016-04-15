@@ -80,7 +80,10 @@ f, axes = plt.subplots(nrows=1, ncols=2, figsize=(20,6))
 direc = '/raid/gergel/dfm/%s' % 'rcp85_2080s'
 
 # average over models 
+####################
 txt_files = [b for b in os.listdir(direc)]
+# txt_files = ['CNRM-CM5_rcp85_2070_2099.nc'] 
+################### 
 
 total = 0.0
 for ii, f in enumerate(txt_files):
@@ -131,7 +134,7 @@ plt.sca(ax)
 
 m = make_map(fs, label_parallels=True, label_meridians=True) 
 
-x,y = map(v.lon, v.lat)
+x,y = m(v.lon, v.lat)
 
 # img = v_dfm_mtns.plot(ax=ax, vmin=vmin, vmax=vmax, cmap='bwr_r', add_labels=False, add_colorbar=False)
 img = m.pcolormesh(x, y, v_dfm_mtns.to_masked_array(), cmap='bwr_r', vmin=vmin, vmax=vmax) 
@@ -141,8 +144,8 @@ cbar.set_ticks([np.linspace(vmin, vmax, 6, endpoint=True, dtype='int')])
 cbar.set_label('FPN \n (%)',
                         rotation='horizontal', labelpad=lp)
 ax.set_title('Mountains')
-ax.set_xlabel('Longitude', labelpad=lp) 
-ax.set_ylabel('Latitude', labelpad=lp) 
+#ax.set_xlabel('Longitude', labelpad=lp) 
+#ax.set_ylabel('Latitude', labelpad=lp) 
 font = {'size' : fs}
 plt.rc('font', **font)
 
@@ -159,7 +162,7 @@ cbar.set_ticks([np.linspace(-100, 100, 6, endpoint=True, dtype='int')])
 cbar.set_label('FPN \n (%)',         
                         rotation='horizontal', labelpad=lp)
 ax.set_title('Lowlands')
-ax.set_xlabel('Longitude', labelpad=lp)
+#ax.set_xlabel('Longitude', labelpad=lp)
 font = {'size' : fs}
 plt.rc('font', **font)
 
