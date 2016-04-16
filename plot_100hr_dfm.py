@@ -44,13 +44,13 @@ direc = '/raid/gergel/dfm'
 
 # ## MOUNTAIN RANGES #  
 
-f, axes = plt.subplots(nrows=2, ncols=4, figsize=(30,20)) 
+f, axes = plt.subplots(nrows=2, ncols=4, figsize=(30,15)) 
 
 # mask domain
 mask_domain_mtns = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/mountains', ds.lat, ds.lon)
 mask_domain_lowlands = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/lowlands', ds.lat, ds.lon)
 
-for i, caxes in enumerate(axes):
+for i, caxes in enumerate(axes.ravel()):
     ax=caxes
     plt.sca(ax)
     
@@ -62,8 +62,8 @@ for i, caxes in enumerate(axes):
     direc = '/raid/gergel/dfm/%s' % direcs[i] 
 
     # average over models 
-    # txt_files = [b for b in os.listdir(direc)]
-    txt_files = ['CNRM-CM5_%s_%s.nc' %(scenarios[i], chunks[i])]      
+    txt_files = [b for b in os.listdir(direc)]
+    # txt_files = ['CNRM-CM5_%s_%s.nc' %(scenarios[i], chunks[i])]      
 
     total = 0.0
     for ii, f in enumerate(txt_files):
@@ -131,15 +131,19 @@ for i, caxes in enumerate(axes):
     	ax.set_title(titles[i], size=fs)
     
 # get rid of whitespace between subplots
-plt.subplots_adjust(wspace=None, hspace=None, left=0.05, right=0.98, top=1, bottom=0.16) 
+plt.subplots_adjust(wspace=0.1, hspace=None, left=0.05, right=0.98, top=0.9, bottom=0.2) 
+
+# add delineation between rows
+#plt.text(0.075, 0.5, 'Mountain Ranges', va='center', rotation='horizontal',size = 'x-large')
+#plt.text(0.075, 0.93, 'Lowland Regions', va='center', rotation='horizontal',size = 'x-large')
 
 # create colorbars 
-cax1 = plt.axes([0.05, 0.1, 0.20, 0.1]) #[left,vertical, distance from left, height]
+cax1 = plt.axes([0.04, 0.1, 0.22, 0.05]) #[left,vertical, distance from left, height]
 cbar = plt.colorbar(img_h, cax=cax1, orientation='horizontal')
 cbar.set_ticks([np.linspace(0, 28, 8, endpoint=True, dtype='int')])
 cbar.set_label('% DFM', rotation='horizontal', labelpad=lp)
 
-cax2 = plt.axes([0.47, 0.1, 0.35, 0.1]) #[left,vertical, distance from left, height]
+cax2 = plt.axes([0.47, 0.1, 0.35, 0.05]) #[left,vertical, distance from left, height]
 cbar = plt.colorbar(img_f, cax=cax2, orientation='horizontal')
 cbar.set_ticks([np.linspace(vmin, vmax, 8, endpoint=True, dtype='int')])
 cbar.set_label('$\Delta$ % Difference DFM', rotation='horizontal', labelpad=lp)
@@ -149,7 +153,7 @@ cbar.set_label('$\Delta$ % Difference DFM', rotation='horizontal', labelpad=lp)
 direc = '/raid/gergel/dfm/plots/fm100'
 if not os.path.exists(direc):
     os.makedirs(direc) ## if directory doesn't exist, create it
-plotname = 'fm100_mountains'
+plotname = 'fm100'
 savepath = os.path.join(direc, plotname)
 print ("saving figure to '%s'" % savepath)
 plt.savefig(savepath)
