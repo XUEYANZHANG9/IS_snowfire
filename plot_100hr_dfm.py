@@ -30,7 +30,7 @@ v = (u.sel(month=6) + u.sel(month=7) + u.sel(month=8) + u.sel(month=9)) / 4.0
 fs = 30 ## fontsize
 nbins = 11
 lp = 10
-
+dpi = 150 
 
 model = "MIROC5"
 # scenarios = ["historical", "rcp45", "rcp45", "rcp45", "rcp85", "rcp85", "rcp85"]
@@ -88,7 +88,10 @@ for i, caxes in enumerate(axes.ravel()):
     # plot data
     if (scenarios[i] == "historical"):
 
-	m = make_map(fs, label_parallels=True, label_meridians=True)
+	if i == 0: 
+		m = make_map(fs, label_parallels=True)
+	else: 
+		m = make_map(fs, label_parallels=True, label_meridians=True)
 	x,y = m(v.lon, v.lat)
 
         v_hist = v
@@ -96,16 +99,14 @@ for i, caxes in enumerate(axes.ravel()):
         vmin = 0
 	vmax = 28
        	cmap = cmap_discretize(plt.cm.viridis_r, 7) 
-        img_h = m.pcolormesh(x, y, v_hist.to_masked_array(), vmin=vmin, vmax=vmax, cmap=cmap) 
-	'''
-	cbar = plt.colorbar(img_h, orientation='horizontal')
-        cbar.set_ticks([np.linspace(vmin, vmax, 8, endpoint=True, dtype='int')])
-        cbar.set_label('% DFM', rotation='horizontal', labelpad=lp)
-	'''        
+        img_h = m.pcolormesh(x, y, v_hist.to_masked_array(), vmin=vmin, vmax=vmax, cmap=cmap)        
 
     else: 
 
-	m = make_map(fs, label_meridians=True)
+	if i < 4: 
+		m = make_map(fs) 
+	else: 
+		m = make_map(fs, label_meridians=True)
 
 	x,y = m(v.lon, v.lat) 
         v_diff = v - v_hist
@@ -117,18 +118,13 @@ for i, caxes in enumerate(axes.ravel()):
 
         img_f = m.pcolormesh(x, y, v_diff.to_masked_array(), vmin=vmin, vmax=vmax, cmap=cmap) 
 	plt.setp(ax.get_yticklabels(), visible=False)
-
-	'''
-	if chunks[i] == "2040_2069":
-        	cbar = plt.colorbar(img_f, orientation='horizontal')
-        	cbar.set_ticks([np.linspace(vmin, vmax, 8, endpoint=True, dtype='int')])
-        	cbar.set_label('$\Delta$ % Diff DFM', rotation='horizontal', labelpad=lp)
-        '''
 	
     font = {'size' : fs}
     plt.rc('font', **font)
+
     if i < 4:
-    	ax.set_title(titles[i], size=fs)
+	title_above = '%s \n ' % titles[i]  
+    	ax.set_title(title_above, size=fs)
     
 # get rid of whitespace between subplots
 plt.subplots_adjust(wspace=0.1, hspace=None, left=0.05, right=0.98, top=0.9, bottom=0.2) 
@@ -156,7 +152,7 @@ if not os.path.exists(direc):
 plotname = 'fm100'
 savepath = os.path.join(direc, plotname)
 print ("saving figure to '%s'" % savepath)
-plt.savefig(savepath)
+plt.savefig(savepath, dpi=dpi)
 
 
 # ## LOWLAND REGIONS ##
@@ -233,15 +229,4 @@ for i, caxes in enumerate(axes):
     
 # get rid of whitespace between subplots
 # plt.tight_layout() 
-
-## save plot
-direc = '/raid/gergel/dfm/plots/fm100'
-if not os.path.exists(direc):
-    os.makedirs(direc) ## if directory doesn't exist, create it
-plotname = 'fm100_lowlands' 
-savepath = os.path.join(direc, plotname)
-print ("saving figure to '%s'" % savepath)
-plt.savefig(savepath)
 '''
-
-

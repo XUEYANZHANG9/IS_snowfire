@@ -9,10 +9,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from dfm_functions import make_map,make_mask, cmap_discretize 
 
-fs = 30 ## fontsize
+fs = 40 ## fontsize
 nbins = 11
-lp = 5
-dpi = 0
+lp = 10
+dpi = 50
 
 '''models = ['CNRM-CM5','NorESM1-M','IPSL-CM5A-MR','CanESM2','CCSM4','HadGEM2-CC365',
                    'HadGEM2-ES365','MIROC5','bcc-csm1-1-m','CSIRO-Mk3-6-0']'''
@@ -35,10 +35,14 @@ f, axes = plt.subplots(nrows=2, ncols=2, figsize=(30, 30))
 rows = [0, 1, 0, 1] 
 cols = [0, 0, 1, 1] 
 
-for i in np.arange(len(rows)):
+for i in np.arange(4):
 
 	ax = axes[rows[i],cols[i]] 
 	plt.sca(ax)
+
+	# set font properties
+        font = {'size' : fs}
+        plt.rc('font', **font)
 
 	if i < 2: 
 	
@@ -79,60 +83,78 @@ for i in np.arange(len(rows)):
 	else: 
 		ds_ens = ds_ens_fut - ds_ens_hist  
 	
-# mask domain 
-if i == 0 or 2: 
-	ds_ens = ds_ens.where(mask_domain_mtns == 1) 
-else: 
-	ds_ens = ds_ens.where(mask_domain_lowlands == 1) 
+	# mask domain 
+	if (i == 0) or (i == 2): 
+		ds_ens = ds_ens.where(mask_domain_mtns == 1) 
+	elif (i == 1) or (i == 3): 
+		ds_ens = ds_ens.where(mask_domain_lowlands == 1) 
 
-# plot 
-if i < 2: 
-	vmax = 330
-	vmin = 0
-else: 
-	vmax = 14
-	vmin = -14
+	# plot
+ 
+	# trim off whitespace 
+	ds_ens = ds_ens.sel(Latitude=slice(31,49.03), Longitude=slice(ds_ens.Longitude.min(), ds_ens.Longitude.max()))
+	
+	if i == 0:
+		m = make_map(fs, label_parallels=True)
+	elif i == 1: 
+		m = make_map(fs, label_parallels=True, label_meridians=True) 
+	elif i == 2: 
+		m = make_map(fs) 
+	else: 
+		m = make_map(fs, label_meridians=True) 
 
-# trim off whitespace 
-ds_ens = ds_ens.sel(Latitude=slice(31,49.03), Longitude=slice(ds_ens.Longitude.min(), ds_ens.Longitude.max()))
-if i == 0:
-	m = make_map(fs, label_parallels=True)
-elif i == 1: 
-	m = make_map(fs, label_parallels=True, label_meridians=True) 
-elif i == 2: 
-	m = make_map(fs) 
-else: 
-	m = make_map(fs, label_meridians=True) 
+	x,y = m(ds_ens.Longitude, ds_ens.Latitude)
+	# discretize colormaps
+	cmap_hist = cmap_discretize(plt.cm.viridis_r, 7)
+	cmap_future = cmap_discretize(plt.cm.bwr_r, 8) 
 
-x,y = m(ds_ens.Longitude, ds_ens.Latitude)
-# discretize colormaps
-cmap_hist = cmap_discretize(plt.cm.viridis_r, 8)
-cmap_future = cmap_discretize(plt.cm.bwr_r, 8) 
+	if i < 2: 
+		vmin = -6
+		vmax = 50
+	else:
+		vmin = -24
+		vmax = 24
 
-if i < 2: 
-	img_hist = m.pcolormesh(x, y, ds_ens.to_masked_array(), cmap=cmap_hist, vmin=vmin, vmax=vmax) 
-else: 
-	img_future = m.pcolormesh(x, y, ds_ens.to_masked_array(), cmap=cmap_future, vmin=vmin, vmax=vmax)
+	if i < 2: 
+		img_hist = m.pcolormesh(x, y, ds_ens.to_masked_array(), cmap=cmap_hist, vmin=vmin, vmax=vmax) 
+	else: 
+		img_future = m.pcolormesh(x, y, ds_ens.to_masked_array(), cmap=cmap_future, vmin=vmin, vmax=vmax)
 
-if i == 1: 
-	cbar = plt.colorbar(img_hist, orientation='horizontal')
-	cbar.set_ticks([np.linspace(vmin, vmax, 9, endpoint=True, dtype='int')])
-	cbar.set_label('Soil Moisture Storage [mm]', rotation='horizontal', labelpad=lp) 
-if i == 3: 
-	cbar = plt.colorbar(img_future, orientation='horizontal') 
-	cbar.set_ticks([np.linspace(vmin, vmax, 9, endpoint=True, dtype='int')])	
-	cbar.set_label('Change in Soil Moisture Storage [mm]', rotation='horizontal', labelpad=lp) 
+	if i == 0: 
+		ax.set_title('MOUNTAIN RANGES \n \n 1970-1999 \n ')
+	if i == 1: 
+		ax.set_title('LOWLAND REGIONS \n ') 
+	if i == 2: 
+		ax.set_title('RCP 8.5 2050s \n ') 
 
-font = {'size' : fs} 
-plt.rc('font', **font) 
-if i == 0: 
-	ax.set_title('MOUNTAIN RANGES \n 1970-1999')
-if i == 1: 
-	ax.set_title('LOWLAND REGIONS') 
-if i == 2: 
-	ax.set_title('RCP 8.5 2050s') 
+# set font properties
+font = {'size' : fs}
+plt.rc('font', **font)
 
 
+# get rid of whitespace between subplots
+plt.subplots_adjust(wspace=0.1, hspace=None, left=0.05, right=0.98, top=0.9, bottom=0.2)
+
+# create colorbar axes
+cax1 = plt.axes([0.06, 0.1, 0.42, 0.05]) #[left,vertical, distance from left, height]
+cax2 = plt.axes([0.55, 0.1, 0.42, 0.05]) 
+
+vmax = 50
+vmin = -6
+
+cbar = plt.colorbar(img_hist, cax=cax1, orientation='horizontal', extend='both')
+cbar.set_ticks([np.linspace(vmin, vmax, 8, endpoint=True, dtype='int')])
+cbar.set_label('Soil Moisture Storage [mm]', rotation='horizontal', labelpad=lp)
+
+vmax = 24
+vmin = -24
+
+cbar = plt.colorbar(img_future, cax=cax2, orientation='horizontal', extend='both')
+cbar.set_ticks([np.linspace(vmin, vmax, 9, endpoint=True, dtype='int')])
+cbar.set_label('Change in Soil Moisture Storage [mm]', rotation='horizontal', labelpad=lp)
+
+font = {'size' : fs}
+plt.rc('font', **font)
 
 ## save plot
 direc = '/raid/gergel/sm/plots/'
