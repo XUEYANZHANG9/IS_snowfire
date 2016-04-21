@@ -12,12 +12,12 @@ from dfm_functions import make_map,make_mask, cmap_discretize
 fs = 40 ## fontsize
 nbins = 11
 lp = 10
-dpi = 50
+dpi = 150
 
-'''models = ['CNRM-CM5','NorESM1-M','IPSL-CM5A-MR','CanESM2','CCSM4','HadGEM2-CC365',
-                   'HadGEM2-ES365','MIROC5','bcc-csm1-1-m','CSIRO-Mk3-6-0']'''
+models = ['CNRM-CM5','NorESM1-M','IPSL-CM5A-MR','CanESM2','CCSM4','HadGEM2-CC365',
+                   'HadGEM2-ES365','MIROC5','bcc-csm1-1-m','CSIRO-Mk3-6-0']
 
-models = ['CNRM-CM5'] 
+# models = ['CNRM-CM5'] 
 
 scenarios = ['historical', 'rcp85']
 chunks = ['1980s', '2050s']
@@ -110,10 +110,10 @@ for i in np.arange(4):
 
 	if i < 2: 
 		vmin = -6
-		vmax = 50
+		vmax = 100
 	else:
-		vmin = -24
-		vmax = 24
+		vmin = -80
+		vmax = 80
 
 	if i < 2: 
 		img_hist = m.pcolormesh(x, y, ds_ens.to_masked_array(), cmap=cmap_hist, vmin=vmin, vmax=vmax) 
@@ -121,9 +121,10 @@ for i in np.arange(4):
 		img_future = m.pcolormesh(x, y, ds_ens.to_masked_array(), cmap=cmap_future, vmin=vmin, vmax=vmax)
 
 	if i == 0: 
-		ax.set_title('MOUNTAIN RANGES \n \n 1970-1999 \n ')
-	if i == 1: 
-		ax.set_title('LOWLAND REGIONS \n ') 
+		ax.set_title('1970-1999 \n ')
+
+	'''if i == 1: 
+		ax.set_title('LOWLAND REGIONS \n ')''' 
 	if i == 2: 
 		ax.set_title('RCP 8.5 2050s \n ') 
 
@@ -139,15 +140,15 @@ plt.subplots_adjust(wspace=0.1, hspace=None, left=0.05, right=0.98, top=0.9, bot
 cax1 = plt.axes([0.06, 0.1, 0.42, 0.05]) #[left,vertical, distance from left, height]
 cax2 = plt.axes([0.55, 0.1, 0.42, 0.05]) 
 
-vmax = 50
+vmax = 100
 vmin = -6
 
 cbar = plt.colorbar(img_hist, cax=cax1, orientation='horizontal', extend='both')
 cbar.set_ticks([np.linspace(vmin, vmax, 8, endpoint=True, dtype='int')])
 cbar.set_label('Soil Moisture Storage [mm]', rotation='horizontal', labelpad=lp)
 
-vmax = 24
-vmin = -24
+vmax = 80
+vmin = -80
 
 cbar = plt.colorbar(img_future, cax=cax2, orientation='horizontal', extend='both')
 cbar.set_ticks([np.linspace(vmin, vmax, 9, endpoint=True, dtype='int')])
