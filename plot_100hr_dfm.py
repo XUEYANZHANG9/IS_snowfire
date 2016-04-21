@@ -111,7 +111,7 @@ for i, caxes in enumerate(axes.ravel()):
 	x,y = m(v.lon, v.lat) 
         v_diff = v - v_hist
 
-	cmap = cmap_discretize(plt.cm.bwr_r, 6)
+	cmap = cmap_discretize(plt.cm.bwr_r, 8)
 
 	vmin = -6 
 	vmax = 6
@@ -141,7 +141,7 @@ cbar.set_label('% DFM', rotation='horizontal', labelpad=lp)
 
 cax2 = plt.axes([0.47, 0.1, 0.35, 0.05]) #[left,vertical, distance from left, height]
 cbar = plt.colorbar(img_f, cax=cax2, orientation='horizontal')
-cbar.set_ticks([np.linspace(vmin, vmax, 8, endpoint=True, dtype='int')])
+cbar.set_ticks([np.linspace(vmin, vmax, 9, endpoint=True, dtype='int')])
 cbar.set_label('$\Delta$ % Difference DFM', rotation='horizontal', labelpad=lp)
 
 

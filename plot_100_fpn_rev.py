@@ -26,7 +26,7 @@ v = (u.sel(month=7) + u.sel(month=8) + u.sel(month=9)) / 3.0
 mask_domain_mtns = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/mountains', ds.lat, ds.lon)
 mask_domain_lowlands = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/lowlands', ds.lat, ds.lon)
 
-fs = 30 ## fontsize
+fs = 40 ## fontsize
 nbins = 11
 lp = 10
 dpi = 150
@@ -38,7 +38,7 @@ direc = '/raid/gergel/dfm/%s' % 'rcp85_2080s'
 # average over models 
 ####################
 txt_files = [b for b in os.listdir(direc)]
-#txt_files = ['CNRM-CM5_rcp85_2070_2099.nc'] 
+# txt_files = ['CNRM-CM5_rcp85_2070_2099.nc'] 
 ################### 
 
 total = 0.0
@@ -96,14 +96,14 @@ plt.sca(ax)
 m = make_map(fs, label_parallels=True, label_meridians=True) 
 x,y = m(v.lon, v.lat)
 img = m.pcolormesh(x, y, v_dfm_mtns.to_masked_array(), cmap=cmap, vmin=vmin, vmax=vmax) 
-ax.set_title('Mountains \n ')
+ax.set_title('Mountains \n ', size=fs)
 
 # second subplot
 ax = axes[1]
 plt.sca(ax)
 m = make_map(fs, label_meridians=True) 
 img = m.pcolormesh(x, y, v_dfm_low.to_masked_array(), cmap=cmap, vmin=vmin, vmax=vmax) 
-ax.set_title('Lowlands \n ')
+ax.set_title('Lowlands \n ', size=fs)
 
 # get rid of whitespace between subplots
 plt.subplots_adjust(wspace=0.1, hspace=None, left=0.05, right=0.98, top=0.9, bottom=0.2)
