@@ -89,8 +89,9 @@ def make_df_for_heatmap(modelss,basinss,scenario,clim_period):
 	    perc_diff = ( (sm_mean - sm_hist_mean) / ( (sm_mean + sm_hist_mean) / 2.0 ) ) * 100.0             
             
             pvals.append(stats.ttest_ind(sm_hist,sm,equal_var=False)[1])
-            # diff_means.append(sm_mean - sm_hist_mean)
-	    diff_means.append(perc_diff) 
+    
+            diff_means.append(sm_mean - sm_hist_mean)
+	    # diff_means.append(perc_diff) 
 
     diff_means = np.around(np.asarray(diff_means),4)
     pvals = np.asarray(pvals)
@@ -110,23 +111,12 @@ def make_df_for_heatmap(modelss,basinss,scenario,clim_period):
                                   "Northwest Interior","Coastal North","Coastal South","Lower Colorado","Great Basin"], 
                                                  axis=0)
     
-    df_pivot_pvals = df_pivot_pvals.iloc[::-1].values.ravel() ## flips over the dataframe, then makes it one dimension 
+    df_pivot_pvals_rav = df_pivot_pvals.iloc[::-1].values.ravel() ## flips over the dataframe, then makes it one dimension 
                                                               ##so that it can be iterated through the same way as ax.text 
     
-    return(df_pivot,diff_means,df_pivot_pvals)
+    # df_pivot = df_pivot[df_pivot.values].astype(float) # or int
 
-'''
-def denote_stat_sig(pvals,pivot_table_values,plot_obj):
-    count = 0
-    for text in plot_obj.texts:
-        text.set_size(8)
-        if pvals[count] < 0.05: 
-            text.set_color('blue')
-            text.set_weight('bold')
-            text.set_style('italic')
-        count += 1 
-    return(plot_obj)
-'''
+    return(df_pivot, df_pivot_pvals)
 
 lt = 30
 rt = 15
@@ -138,26 +128,23 @@ plt.rc('font', **font)
 
 
 # create colorbar axes
-cax1 = plt.axes([0.1, 0.1, 0.8, 0.05])  #[left,vertical, distance from left, height] 
+cbar_ax = plt.axes([0.1, 0.1, 0.8, 0.05])  #[left,vertical, distance from left, height] 
+
+vmin = -50
+vmax = 50
 
 fig_count = 0
+
+nums = [1, 2, 3, 4, 5, 6] 
+
 for scenario in scenarios: 
 	for clim_period in clim_periods: 
-		df_pivot, diff_means, pvals = make_df_for_heatmap(models_10, basins_10, scenario, clim_period)	
-		ax = fig.add_subplot(2, 3, (fig_count + 1) ) 
-		sns.heatmap(df_pivot, 
-				annot=False, 
-				linewidths=.5,
-				cmap='RdBu',
-				cbar = True if fig_count == 1 else False,
-				cbar_ax=cbar_ax,  
-				cbar_kws={"extend": 'min'}, 
-				vmin=-50, 
-				vmax=50
-				cbar_kws={"extend": 'min', 
-					"orientation": "horizontal", 
-					"label": "% Change in Soil Moisture", 
-					"size": fs})
+		df_pivot, pvals_df = make_df_for_heatmap(models_10, basins_10, scenario, clim_period)	
+		print(type(df_pivot)) 
+		print(fig_count + 1) 
+		ax = fig.add_subplot(2, 3, nums[fig_count]) 
+		print(df_pivot) 
+		sns.heatmap(df_pivot, annot=False, linewidths=.5, cmap='RdBu', cbar=False, vmin=vmin, vmax=vmax)
 		
 		sns.heatmap(df_pivot, mask=pvals_df < 0.05, cbar=False,cmap='gray', annot=True, 
 				annot_kws={"size": "10", "alpha": "0.0", "text": "%.1d"})
@@ -169,8 +156,13 @@ for scenario in scenarios:
 		elif clim_period == "2080s" and scenario == "rcp45":
 			ax.set_title("2080s") 
 		# ax = denote_stat_sig(pvals, diff_means, ax) 
+		
 		fig_count += 1 
 
+
+cbar = plt.colorbar(img, cax=cbar_ax, orientation='horizontal', extend='both')
+cbar.set_ticks([np.linspace(vmin, vmax, 10, endpoint=True, dtype='int')])
+cbar.set_label('%% Change in Soil Moisture', rotation='horizontal', labelpad=lp)
 
 
 fig.text(0.075, 0.5, 'RCP 8.5', va='center', rotation='horizontal', size = 'x-large')
