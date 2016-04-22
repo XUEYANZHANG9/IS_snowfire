@@ -1,6 +1,6 @@
 
 import matplotlib
-matplotlib.use('Agg') 
+matplotlib.use('Qt4Agg') 
 import matplotlib.pyplot as plt
 import os
 import datetime
