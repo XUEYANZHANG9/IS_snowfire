@@ -110,10 +110,10 @@ for i in np.arange(4):
 
 	if i < 2: 
 		vmin = -6
-		vmax = 100
+		vmax = 150
 	else:
-		vmin = -80
-		vmax = 80
+		vmin = -120
+		vmax = 120
 
 	if i < 2: 
 		img_hist = m.pcolormesh(x, y, ds_ens.to_masked_array(), cmap=cmap_hist, vmin=vmin, vmax=vmax) 
@@ -140,15 +140,15 @@ plt.subplots_adjust(wspace=0.1, hspace=None, left=0.05, right=0.98, top=0.9, bot
 cax1 = plt.axes([0.06, 0.1, 0.42, 0.05]) #[left,vertical, distance from left, height]
 cax2 = plt.axes([0.55, 0.1, 0.42, 0.05]) 
 
-vmax = 100
 vmin = -6
+vmax = 150
 
 cbar = plt.colorbar(img_hist, cax=cax1, orientation='horizontal', extend='both')
 cbar.set_ticks([np.linspace(vmin, vmax, 8, endpoint=True, dtype='int')])
 cbar.set_label('Soil Moisture Storage [mm]', rotation='horizontal', labelpad=lp)
 
-vmax = 80
-vmin = -80
+vmin = -120
+vmax = 120
 
 cbar = plt.colorbar(img_future, cax=cax2, orientation='horizontal', extend='both')
 cbar.set_ticks([np.linspace(vmin, vmax, 9, endpoint=True, dtype='int')])

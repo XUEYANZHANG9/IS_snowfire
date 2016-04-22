@@ -109,12 +109,17 @@ for i, caxes in enumerate(axes.ravel()):
 		m = make_map(fs, label_meridians=True)
 
 	x,y = m(v.lon, v.lat) 
-        v_diff = v - v_hist
+        # v_diff = v - v_hist
+	v_diff = ( (v - v_hist) / ( (v + v_hist) / 2.0 ) ) * 100.0 
 
-	cmap = cmap_discretize(plt.cm.bwr_r, 8)
+	cmap = cmap_discretize(plt.cm.bwr_r, 15)
 
+	'''
 	vmin = -6 
 	vmax = 6
+	'''
+	vmin = -100 
+	vmax = 100 
 
         img_f = m.pcolormesh(x, y, v_diff.to_masked_array(), vmin=vmin, vmax=vmax, cmap=cmap) 
 	plt.setp(ax.get_yticklabels(), visible=False)
@@ -141,9 +146,9 @@ cbar.set_label('% DFM', rotation='horizontal', labelpad=lp)
 
 cax2 = plt.axes([0.47, 0.1, 0.35, 0.05]) #[left,vertical, distance from left, height]
 cbar = plt.colorbar(img_f, cax=cax2, orientation='horizontal')
-cbar.set_ticks([np.linspace(vmin, vmax, 9, endpoint=True, dtype='int')])
-cbar.set_label('$\Delta$ % Difference DFM', rotation='horizontal', labelpad=lp)
-
+cbar.set_ticks([np.linspace(vmin, vmax, 16, endpoint=True, dtype='int')])
+# cbar.set_label('$\Delta$ % Difference DFM', rotation='horizontal', labelpad=lp) 
+cbar.set_label('% Difference in DFM', rotation='horizontal', labelpad=lp) 
 
 ## save plot
 direc = '/raid/gergel/dfm/plots/fm100'
@@ -155,78 +160,3 @@ print ("saving figure to '%s'" % savepath)
 plt.savefig(savepath, dpi=dpi)
 
 
-# ## LOWLAND REGIONS ##
-
-'''
-
-f, axes = plt.subplots(nrows=1, ncols=4, figsize=(40,6))
-
-direc = '/raid/gergel/dfm/%s'
-
-# mask domain
-mask_domain = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/lowlands', ds.lat, ds.lon)
-
-for i, caxes in enumerate(axes):
-    ax=caxes
-    plt.sca(ax)
-
-    direc = '/raid/gergel/dfm/%s' % direcs[i]
-
-    # average over models 
-    txt_files = [b for b in os.listdir(direc)]
-
-    total = 0.0
-    for ii, f in enumerate(txt_files):
-        # load data
-        print(os.path.join(direc, f))
-        ds = xray.open_dataset(os.path.join(direc,f))
-        u = ds['fm100'].groupby('time.month').mean('time')
-
-        # average of JAS months 
-        v = (u.sel(month=7) + u.sel(month=8) + u.sel(month=9)) / 3.0
-
-        if ii == 0:
-                ens = v
-        else:
-                ens += v
-	
-	total += 1.00
-
-    v = ens / total
-    v = v.where(mask_domain == 1)
-    
-    # plot data
-    if (scenarios[i] == "historical"):
-
-	m = make_map(fs, label_parallels=True, label_meridians=True)
-        x,y = m(v.lon, v.lat)
-
-        v_hist = v
-        vmax = 30
-	vmin = v_hist.min(['lat','lon'])
-        # img = v_hist.plot(ax=ax, vmin=vmin, vmax=vmax, add_labels=False, add_colorbar=False)
-        img = m.pcolormesh(x, y, v_hist.to_masked_array(), vmin=vmin, vmax=vmax, cmap='viridis') 
-	cbar = plt.colorbar(img)
-        cbar.set_ticks([np.linspace(0, vmax, 6, endpoint=True, dtype='int')])
-        cbar.set_label('% \n DFM', rotation='horizontal', labelpad=lp)
-        
-    else: 
-
-	m = make_map(fs, label_meridians=True)
-        x,y = m(v.lon, v.lat)
-
-        v_diff = v - v_hist
-        img = m.pcolormesh(x, y, v_diff.to_masked_array(), vmin=-4, vmax=4, cmap='bwr') 
-	plt.setp(ax.get_yticklabels(), visible=False)
-        cbar = plt.colorbar(img, orientation='horizontal')
-        cbar.set_ticks([np.linspace(-4, 4, 8, endpoint=True, dtype='int')])
-        cbar.set_label('% \n Diff \n DFM', rotation='horizontal', labelpad=lp)
-    
-    font = {'size' : fs}
-    plt.rc('font', **font)
-    
-    ax.set_title(titles[i], size=fs)
-    
-# get rid of whitespace between subplots
-# plt.tight_layout() 
-'''
