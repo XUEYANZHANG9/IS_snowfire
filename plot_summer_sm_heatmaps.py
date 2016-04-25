@@ -1,6 +1,6 @@
 
 import matplotlib
-matplotlib.use('Qt4Agg') 
+matplotlib.use('Agg') 
 import matplotlib.pyplot as plt
 import os
 import datetime
@@ -12,10 +12,10 @@ import xarray as xray
 from dfm_functions import make_mask 
 
 
-fs = 40 ## fontsize
+fs = 30 ## fontsize
 nbins = 11
 lp = 10
-dpi = 50
+dpi = 150
 
 scenarios = ["rcp45", "rcp85"]
 clim_periods = ["2020s", "2050s", "2080s"] 
@@ -90,10 +90,11 @@ def make_df_for_heatmap(modelss,basinss,scenario,clim_period):
             
             pvals.append(stats.ttest_ind(sm_hist,sm,equal_var=False)[1])
     
-            diff_means.append(sm_mean - sm_hist_mean)
+            diff_means.append(float(sm_mean - sm_hist_mean))
 	    # diff_means.append(perc_diff) 
 
-    diff_means = np.around(np.asarray(diff_means),4)
+    #diff_means = np.around(np.asarray(diff_means),4)
+    diff_means = np.asarray(diff_means)
     pvals = np.asarray(pvals)
 
     d = {'GCMs': modelss, 'Regions': basinss, 'means': diff_means}
@@ -118,20 +119,29 @@ def make_df_for_heatmap(modelss,basinss,scenario,clim_period):
 
     return(df_pivot, df_pivot_pvals)
 
+lp = 15 
 lt = 30
-rt = 15
+rt = 25
 fig = plt.figure(figsize=(lt,rt))
 
+rc={'font.size': fs, 'axes.labelsize': fs, 'xtick.major.size': fs, 'xtick.minor.size': fs, 'legend.fontsize': fs, 
+    'axes.titlesize': fs, 'xtick.labelsize': fs, 'ytick.labelsize': fs, 'axes.labelpad': lp}
+
+sns.set(rc=rc) 
+sns.set_context(rc=rc)
+
 # set font properties
-font = {'size' : fs}
-plt.rc('font', **font)
+# font = {'size' : fs}
+# plt.rc('font', **font)
 
 
 # create colorbar axes
-cbar_ax = plt.axes([0.1, 0.1, 0.8, 0.05])  #[left,vertical, distance from left, height] 
+cbar_ax = plt.axes([0.15, 0.1, 0.8, 0.05])  #[left,vertical, distance from left, height] 
+# cbar_ax.tick_params(labelsize=25, size=25)
 
-vmin = -50
-vmax = 50
+
+vmin = -75
+vmax = 75
 
 fig_count = 0
 
@@ -144,28 +154,53 @@ for scenario in scenarios:
 		print(fig_count + 1) 
 		ax = fig.add_subplot(2, 3, nums[fig_count]) 
 		print(df_pivot) 
-		sns.heatmap(df_pivot, annot=False, linewidths=.5, cmap='RdBu', cbar=False, vmin=vmin, vmax=vmax)
+		img = sns.heatmap(df_pivot, 
+				annot=False, 
+				cbar=False if fig_count > 0 else True, 
+				cbar_ax=cbar_ax, 
+				linewidths=.5, 
+				square=True,  
+				cmap='RdBu', 
+				vmin=vmin, vmax=vmax, 
+				cbar_kws={"orientation": "horizontal", "label": "% Change in Soil Moisture"}
+				)
 		
-		sns.heatmap(df_pivot, mask=pvals_df < 0.05, cbar=False,cmap='gray', annot=True, 
-				annot_kws={"size": "10", "alpha": "0.0", "text": "%.1d"})
+		# sns.heatmap(df_pivot, mask=pvals_df < 0.05, cbar=False,cmap='gray', annot=False)
 
 		if clim_period == "2020s" and scenario == "rcp45": 
-			ax.set_title("2020s")
+			ax.set_title("2020s \n")
 		elif clim_period == "2050s" and scenario == "rcp45": 
-			ax.set_title("2050s") 
+			ax.set_title("2050s \n") 
 		elif clim_period == "2080s" and scenario == "rcp45":
-			ax.set_title("2080s") 
+			ax.set_title("2080s \n ") 
+
 		# ax = denote_stat_sig(pvals, diff_means, ax) 
+		'''
+		if fig_count == 4: 
+			ax.set_xlabel('GCMs', size=fs) 
+		if fig_count == 0 or fig_count == 3: 
+			ax.set_ylabel('Regions', size=fs) 
+		'''		
 		
+		if fig_count < 3: 
+			ax.xaxis.set_visible(False)
+		if fig_count != 0 and fig_count != 3: 
+			ax.yaxis.set_visible(False) 
+
 		fig_count += 1 
 
-
-cbar = plt.colorbar(img, cax=cbar_ax, orientation='horizontal', extend='both')
+'''
+cbar = ax.colorbar(cax=cbar_ax, orientation='horizontal', extend='both')
 cbar.set_ticks([np.linspace(vmin, vmax, 10, endpoint=True, dtype='int')])
 cbar.set_label('%% Change in Soil Moisture', rotation='horizontal', labelpad=lp)
+'''
 
+# img.set(xlabel='GCMs', ylabel='Regions')
 
-fig.text(0.075, 0.5, 'RCP 8.5', va='center', rotation='horizontal', size = 'x-large')
+# get rid of whitespace between subplots
+plt.subplots_adjust(wspace=0.1, hspace=None, left=0.15, right=0.98, top=0.9, bottom=0.35)
+
+fig.text(0.075, 0.62, 'RCP 8.5', va='center', rotation='horizontal', size = 'x-large')
 fig.text(0.075, 0.93, 'RCP 4.5', va='center', rotation='horizontal', size = 'x-large')
 
 ## save plot

@@ -63,7 +63,7 @@ for i, caxes in enumerate(axes.ravel()):
 
     # average over models 
     txt_files = [b for b in os.listdir(direc)]
-    # txt_files = ['CNRM-CM5_%s_%s.nc' %(scenarios[i], chunks[i])]      
+    #txt_files = ['CNRM-CM5_%s_%s.nc' %(scenarios[i], chunks[i])]      
 
     total = 0.0
     for ii, f in enumerate(txt_files):
@@ -145,7 +145,7 @@ cbar.set_ticks([np.linspace(0, 28, 8, endpoint=True, dtype='int')])
 cbar.set_label('% DFM', rotation='horizontal', labelpad=lp)
 
 cax2 = plt.axes([0.47, 0.1, 0.35, 0.05]) #[left,vertical, distance from left, height]
-cbar = plt.colorbar(img_f, cax=cax2, orientation='horizontal')
+cbar = plt.colorbar(img_f, cax=cax2, orientation='horizontal', extend='both')
 cbar.set_ticks([np.linspace(vmin, vmax, 11, endpoint=True, dtype='int')])
 # cbar.set_label('$\Delta$ % Difference DFM', rotation='horizontal', labelpad=lp) 
 cbar.set_label('% Difference in DFM', rotation='horizontal', labelpad=lp) 

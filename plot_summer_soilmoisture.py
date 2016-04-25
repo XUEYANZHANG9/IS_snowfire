@@ -17,7 +17,7 @@ dpi = 150
 models = ['CNRM-CM5','NorESM1-M','IPSL-CM5A-MR','CanESM2','CCSM4','HadGEM2-CC365',
                    'HadGEM2-ES365','MIROC5','bcc-csm1-1-m','CSIRO-Mk3-6-0']
 
-# models = ['CNRM-CM5'] 
+#models = ['CNRM-CM5'] 
 
 scenarios = ['historical', 'rcp85']
 chunks = ['1980s', '2050s']
@@ -105,11 +105,11 @@ for i in np.arange(4):
 
 	x,y = m(ds_ens.Longitude, ds_ens.Latitude)
 	# discretize colormaps
-	cmap_hist = cmap_discretize(plt.cm.viridis_r, 7)
+	cmap_hist = cmap_discretize(plt.cm.viridis_r, 8)
 	cmap_future = cmap_discretize(plt.cm.bwr_r, 8) 
 
 	if i < 2: 
-		vmin = -6
+		vmin = -10
 		vmax = 150
 	else:
 		vmin = -120
@@ -140,11 +140,16 @@ plt.subplots_adjust(wspace=0.1, hspace=None, left=0.05, right=0.98, top=0.9, bot
 cax1 = plt.axes([0.06, 0.1, 0.42, 0.05]) #[left,vertical, distance from left, height]
 cax2 = plt.axes([0.55, 0.1, 0.42, 0.05]) 
 
-vmin = -6
+cax1.tick_params(size=25, labelsize=25)
+cax2.tick_params(size=25, labelsize=25) 
+
+vmin = -10
 vmax = 150
 
 cbar = plt.colorbar(img_hist, cax=cax1, orientation='horizontal', extend='both')
-cbar.set_ticks([np.linspace(vmin, vmax, 8, endpoint=True, dtype='int')])
+# cbar.set_ticks([np.linspace(vmin, vmax, 8, endpoint=True, dtype='int')])
+cbar.set_ticks([-10, 10, 30, 50, 70, 90, 110, 130, 150]) 
+cbar.ax.tick_params(labelsize=fs)
 cbar.set_label('Soil Moisture Storage [mm]', rotation='horizontal', labelpad=lp)
 
 vmin = -120
@@ -152,10 +157,14 @@ vmax = 120
 
 cbar = plt.colorbar(img_future, cax=cax2, orientation='horizontal', extend='both')
 cbar.set_ticks([np.linspace(vmin, vmax, 9, endpoint=True, dtype='int')])
+cbar.ax.tick_params(labelsize=fs)
 cbar.set_label('Change in Soil Moisture Storage [mm]', rotation='horizontal', labelpad=lp)
 
 font = {'size' : fs}
 plt.rc('font', **font)
+
+f.text(0.43, 0.55, 'Lowland Regions', va='center', rotation='horizontal', size = 'x-large')
+f.text(0.43, 0.95, 'Mountain Ranges', va='center', rotation='horizontal', size = 'x-large')
 
 ## save plot
 direc = '/raid/gergel/sm/plots/'
