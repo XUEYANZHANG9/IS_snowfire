@@ -94,12 +94,6 @@ for i, caxes in enumerate(axes.ravel()):
 		m = make_map(fs, label_parallels=True, label_meridians=True)
 	x,y = m(v.lon, v.lat)
 
-    # add (a) and (b) labels for mountain ranges and lowland regions 
-    if i == 0:
-	ax.set_ylabel('(a)', labelpad=lp) 
-    elif i == 4:
-	ax.set_ylabel('(b)', labelpad=lp) 
-
         v_hist = v
         # vmax = v_hist.max(['lat','lon'])
         vmin = 0
@@ -130,6 +124,13 @@ for i, caxes in enumerate(axes.ravel()):
         img_f = m.pcolormesh(x, y, v_diff.to_masked_array(), vmin=vmin, vmax=vmax, cmap=cmap) 
 	plt.setp(ax.get_yticklabels(), visible=False)
 	
+    # add (a) and (b) labels for mountain ranges and lowland regions 
+    if i == 0:
+        ax.set_ylabel('(a)', labelpad=lp)
+    elif i == 4:
+        ax.set_ylabel('(b)', labelpad=lp)
+
+
     font = {'size' : fs}
     plt.rc('font', **font)
 
