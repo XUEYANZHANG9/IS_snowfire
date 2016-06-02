@@ -62,8 +62,8 @@ for i, caxes in enumerate(axes.ravel()):
     direc = '/raid/gergel/dfm/%s' % direcs[i] 
 
     # average over models 
-    txt_files = [b for b in os.listdir(direc)]
-    #txt_files = ['CNRM-CM5_%s_%s.nc' %(scenarios[i], chunks[i])]      
+    #txt_files = [b for b in os.listdir(direc)]
+    txt_files = ['CNRM-CM5_%s_%s.nc' %(scenarios[i], chunks[i])]      
 
     total = 0.0
     for ii, f in enumerate(txt_files):
@@ -93,6 +93,12 @@ for i, caxes in enumerate(axes.ravel()):
 	else: 
 		m = make_map(fs, label_parallels=True, label_meridians=True)
 	x,y = m(v.lon, v.lat)
+
+    # add (a) and (b) labels for mountain ranges and lowland regions 
+    if i == 0:
+	ax.set_ylabel('(a)', labelpad=lp) 
+    elif i == 4:
+	ax.set_ylabel('(b)', labelpad=lp) 
 
         v_hist = v
         # vmax = v_hist.max(['lat','lon'])
