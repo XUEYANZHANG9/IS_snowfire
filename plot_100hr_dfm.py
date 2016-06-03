@@ -30,7 +30,7 @@ v = (u.sel(month=6) + u.sel(month=7) + u.sel(month=8) + u.sel(month=9)) / 4.0
 fs = 30 ## fontsize
 nbins = 11
 lp = 10
-dpi = 150 
+dpi = 600
 
 model = "MIROC5"
 # scenarios = ["historical", "rcp45", "rcp45", "rcp45", "rcp85", "rcp85", "rcp85"]
@@ -164,6 +164,6 @@ if not os.path.exists(direc):
 plotname = 'fm100'
 savepath = os.path.join(direc, plotname)
 print ("saving figure to '%s'" % savepath)
-plt.savefig(savepath, dpi=dpi, bbox_inches='tight')
+plt.savefig(savepath, format='tiff', dpi=dpi, bbox_inches='tight')
 
 
