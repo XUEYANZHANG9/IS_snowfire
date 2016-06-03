@@ -12,7 +12,7 @@ from dfm_functions import make_map,make_mask, cmap_discretize
 fs = 40 ## fontsize
 nbins = 11
 lp = 10
-dpi = 150
+dpi = 600
 
 models = ['CNRM-CM5','NorESM1-M','IPSL-CM5A-MR','CanESM2','CCSM4','HadGEM2-CC365',
                    'HadGEM2-ES365','MIROC5','bcc-csm1-1-m','CSIRO-Mk3-6-0']
@@ -170,8 +170,9 @@ f.text(0.43, 0.95, 'Mountain Ranges', va='center', rotation='horizontal', size =
 direc = '/raid/gergel/sm/plots/'
 if not os.path.exists(direc):
     os.makedirs(direc) ## if directory doesn't exist, create it
-plotname = 'sm_map' 
+#plotname = 'sm_map' 
+plotname = 'sm_map.tiff'
 savepath = os.path.join(direc, plotname)
 print ("saving figure to '%s'" % savepath)
-plt.savefig(savepath, dpi=dpi)
+plt.savefig(savepath, format='tiff', dpi=dpi)
 
