@@ -269,5 +269,5 @@ plot_direc = '/raid9/gergel/agg_snowpack/snotel_vic/plots'
 plotname = 'binned_allbasins_april1swe' 
 savepath = os.path.join(plot_direc,plotname)
 print("saving figure to '%s'" %savepath)
-plt.savefig(savepath,dpi=300) 
+plt.savefig(savepath,format='tiff', dpi=600) 
 
