@@ -126,9 +126,9 @@ for i, caxes in enumerate(axes.ravel()):
 	
     # add (a) and (b) labels for mountain ranges and lowland regions 
     if i == 0:
-        ax.set_ylabel('(a)', labelpad=lp)
+        ax.set_ylabel('(a)', rotation='horizontal', labelpad=90)
     elif i == 4:
-        ax.set_ylabel('(b)', labelpad=lp)
+        ax.set_ylabel('(b)', rotation='horizontal', labelpad=90)
 
 
     font = {'size' : fs}
@@ -164,6 +164,6 @@ if not os.path.exists(direc):
 plotname = 'fm100'
 savepath = os.path.join(direc, plotname)
 print ("saving figure to '%s'" % savepath)
-plt.savefig(savepath, dpi=dpi)
+plt.savefig(savepath, dpi=dpi, bbox_inches='tight')
 
 

@@ -18,7 +18,7 @@ scenario = "historical"
 chunk = "1970_1999"
 filename = '%s_%s_%s.nc' % (model, scenario, chunk)
 ds = xray.open_dataset(os.path.join(direc,filename))
-u = ds['fm100'].groupby('time.month').mean('time')
+u = ds['fm1000'].groupby('time.month').mean('time')
 # average of JAS months 
 v = (u.sel(month=7) + u.sel(month=8) + u.sel(month=9)) / 3.0
 
@@ -45,7 +45,7 @@ total = 0.0
 for ii, f in enumerate(txt_files):
 	# load data
 	ds = xray.open_dataset(os.path.join(direc,f))
-	u = ds['fm100'].groupby('time.month').mean('time')
+	u = ds['fm1000'].groupby('time.month').mean('time')
 
 	# average of JAS months 
 	v_future = (u.sel(month=7) + u.sel(month=8) + u.sel(month=9)) / 3.0
@@ -56,7 +56,7 @@ for ii, f in enumerate(txt_files):
 	print(os.path.join('/raid/gergel/dfm/hist', filename))  
 	
 	ds = xray.open_dataset(os.path.join('/raid/gergel/dfm/hist', filename)) 
-	u = ds['fm100'].groupby('time.month').mean('time') 
+	u = ds['fm1000'].groupby('time.month').mean('time') 
 	v_hist = (u.sel(month=7) + u.sel(month=8) + u.sel(month=9)) / 3.0 
 	
 	v = v_future - v_hist 
@@ -117,10 +117,10 @@ cbar.set_ticks([np.linspace(vmin, vmax, 11, endpoint=True, dtype='int')])
 cbar.set_label('Model Agreement in 100-hr DFM (number positive minus negative)', rotation='horizontal', labelpad=lp)
 
 ## save plot
-direc = '/raid/gergel/dfm/plots/fm100'
+direc = '/raid/gergel/dfm/plots/fm1000'
 if not os.path.exists(direc):
     os.makedirs(direc) ## if directory doesn't exist, create it
-#plotname = 'fpn'
+plotname = 'fpn'
 savepath = os.path.join(direc, plotname)
 print ("saving figure to '%s'" % savepath)
 plt.savefig(savepath, format='tiff', bbox_inches='tight', dpi=dpi)
