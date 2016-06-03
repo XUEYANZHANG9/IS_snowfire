@@ -15,7 +15,7 @@ from dfm_functions import make_mask
 fs = 30 ## fontsize
 nbins = 11
 lp = 10
-dpi = 150
+dpi = 600
 
 scenarios = ["rcp45", "rcp85"]
 clim_periods = ["2020s", "2050s", "2080s"] 
@@ -205,8 +205,8 @@ fig.text(0.075, 0.93, 'RCP 4.5', va='center', rotation='horizontal', size = 'x-l
 
 ## save plot
 direc = '/raid/gergel/sm/plots'
-plotname = 'heatmap_sm.png' 
+plotname = 'heatmap_sm.tiff' 
 savepath = os.path.join(direc, plotname)
 print ("saving figure to '%s'" % savepath)
-plt.savefig(savepath, dpi=dpi)
+plt.savefig(savepath, format='tiff', dpi=dpi)
 
