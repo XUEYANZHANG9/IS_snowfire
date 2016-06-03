@@ -62,8 +62,8 @@ for i, caxes in enumerate(axes.ravel()):
     direc = '/raid/gergel/dfm/%s' % direcs[i] 
 
     # average over models 
-    #txt_files = [b for b in os.listdir(direc)]
-    txt_files = ['CNRM-CM5_%s_%s.nc' %(scenarios[i], chunks[i])]      
+    txt_files = [b for b in os.listdir(direc)]
+    #txt_files = ['CNRM-CM5_%s_%s.nc' %(scenarios[i], chunks[i])]      
 
     total = 0.0
     for ii, f in enumerate(txt_files):
@@ -161,7 +161,7 @@ cbar.set_label('% Difference in DFM', rotation='horizontal', labelpad=lp)
 direc = '/raid/gergel/dfm/plots/fm100'
 if not os.path.exists(direc):
     os.makedirs(direc) ## if directory doesn't exist, create it
-plotname = 'fm100'
+plotname = 'fm100.tiff'
 savepath = os.path.join(direc, plotname)
 print ("saving figure to '%s'" % savepath)
 plt.savefig(savepath, format='tiff', dpi=dpi, bbox_inches='tight')
