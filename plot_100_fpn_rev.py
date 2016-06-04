@@ -121,6 +121,7 @@ direc = '/raid/gergel/dfm/plots/fm100'
 if not os.path.exists(direc):
     os.makedirs(direc) ## if directory doesn't exist, create it
 #plotname = 'fpn'
+plotname = 'fpn.tiff'
 savepath = os.path.join(direc, plotname)
 print ("saving figure to '%s'" % savepath)
 plt.savefig(savepath, format='tiff', bbox_inches='tight', dpi=dpi)
