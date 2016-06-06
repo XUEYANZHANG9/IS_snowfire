@@ -266,8 +266,8 @@ for basin in basins:
 	num += 1 
 # fig.legend(handles=[red_patch,green_patch],loc=2) 
 plot_direc = '/raid9/gergel/agg_snowpack/snotel_vic/plots'
-plotname = 'binned_allbasins_april1swe' 
+plotname = 'binned_allbasins_april1swe.eps' 
 savepath = os.path.join(plot_direc,plotname)
 print("saving figure to '%s'" %savepath)
-plt.savefig(savepath,format='tiff', dpi=600) 
+plt.savefig(savepath,format='eps', dpi=600) 
 
