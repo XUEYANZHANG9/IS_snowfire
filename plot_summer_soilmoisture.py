@@ -14,10 +14,10 @@ nbins = 11
 lp = 10
 dpi = 600
 
-models = ['CNRM-CM5','NorESM1-M','IPSL-CM5A-MR','CanESM2','CCSM4','HadGEM2-CC365',
-                   'HadGEM2-ES365','MIROC5','bcc-csm1-1-m','CSIRO-Mk3-6-0']
+'''models = ['CNRM-CM5','NorESM1-M','IPSL-CM5A-MR','CanESM2','CCSM4','HadGEM2-CC365',
+                   'HadGEM2-ES365','MIROC5','bcc-csm1-1-m','CSIRO-Mk3-6-0']'''
 
-#models = ['CNRM-CM5'] 
+models = ['CNRM-CM5'] 
 
 scenarios = ['historical', 'rcp85']
 chunks = ['1980s', '2050s']
@@ -30,7 +30,7 @@ ds = xray.open_dataset(os.path.join(direc, filename))
 mask_domain_mtns = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/mountains', ds.Latitude, ds.Longitude)
 mask_domain_lowlands = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/lowlands', ds.Latitude, ds.Longitude)
 
-f, axes = plt.subplots(nrows=2, ncols=2, figsize=(30, 30))
+f, axes = plt.subplots(nrows=2, ncols=2, figsize=(6.8, 6.8))
 
 rows = [0, 1, 0, 1] 
 cols = [0, 0, 1, 1] 
