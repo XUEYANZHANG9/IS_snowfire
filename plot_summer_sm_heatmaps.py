@@ -12,10 +12,10 @@ import xarray as xray
 from dfm_functions import make_mask 
 
 
-fs = 10 ## fontsize
+fs = 9 ## fontsize
 nbins = 11
-lp = 10
-dpi = 300
+lp = 5
+dpi = 400
 
 scenarios = ["rcp45", "rcp85"]
 clim_periods = ["2020s", "2050s", "2080s"] 
@@ -120,7 +120,7 @@ def make_df_for_heatmap(modelss,basinss,scenario,clim_period):
     return(df_pivot, df_pivot_pvals)
 
 lp = 15 
-lt = 6.8
+lt = 6.6
 rt = 6
 fig = plt.figure(figsize=(lt,rt))
 
@@ -198,9 +198,9 @@ cbar.set_label('%% Change in Soil Moisture', rotation='horizontal', labelpad=lp)
 # img.set(xlabel='GCMs', ylabel='Regions')
 
 # get rid of whitespace between subplots
-plt.subplots_adjust(wspace=0.1, hspace=None, left=0.15, right=0.98, top=0.9, bottom=0.45)
+plt.subplots_adjust(wspace=0.05, hspace=0.1, left=0.15, right=0.98, top=0.9, bottom=0.4)
 
-fig.text(0.075, 0.62, 'RCP 8.5', va='center', rotation='horizontal', size = fs)
+fig.text(0.075, 0.65, 'RCP 8.5', va='center', rotation='horizontal', size = fs)
 fig.text(0.075, 0.93, 'RCP 4.5', va='center', rotation='horizontal', size = fs)
 
 ## save plot
