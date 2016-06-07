@@ -9,15 +9,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from dfm_functions import make_map,make_mask, cmap_discretize 
 
-fs = 40 ## fontsize
+#fs = 40 ## fontsize
+fs = 15
+ticksize = 10
 nbins = 11
 lp = 10
-dpi = 600
+dpi = 300
 
-'''models = ['CNRM-CM5','NorESM1-M','IPSL-CM5A-MR','CanESM2','CCSM4','HadGEM2-CC365',
-                   'HadGEM2-ES365','MIROC5','bcc-csm1-1-m','CSIRO-Mk3-6-0']'''
+models = ['CNRM-CM5','NorESM1-M','IPSL-CM5A-MR','CanESM2','CCSM4','HadGEM2-CC365',
+                   'HadGEM2-ES365','MIROC5','bcc-csm1-1-m','CSIRO-Mk3-6-0']
 
-models = ['CNRM-CM5'] 
+#models = ['CNRM-CM5'] 
 
 scenarios = ['historical', 'rcp85']
 chunks = ['1980s', '2050s']
@@ -121,12 +123,12 @@ for i in np.arange(4):
 		img_future = m.pcolormesh(x, y, ds_ens.to_masked_array(), cmap=cmap_future, vmin=vmin, vmax=vmax)
 
 	if i == 0: 
-		ax.set_title('1970-1999 \n ')
+		ax.set_title('1970-1999', size=fs)
 
 	'''if i == 1: 
 		ax.set_title('LOWLAND REGIONS \n ')''' 
 	if i == 2: 
-		ax.set_title('RCP 8.5 2050s \n ') 
+		ax.set_title('RCP 8.5 2050s', size=fs) 
 
 # set font properties
 font = {'size' : fs}
@@ -140,8 +142,8 @@ plt.subplots_adjust(wspace=0.1, hspace=None, left=0.05, right=0.98, top=0.9, bot
 cax1 = plt.axes([0.06, 0.1, 0.42, 0.05]) #[left,vertical, distance from left, height]
 cax2 = plt.axes([0.55, 0.1, 0.42, 0.05]) 
 
-cax1.tick_params(size=25, labelsize=25)
-cax2.tick_params(size=25, labelsize=25) 
+cax1.tick_params(size=fs, labelsize=25)
+cax2.tick_params(size=fs, labelsize=25) 
 
 vmin = -10
 vmax = 150
@@ -149,22 +151,22 @@ vmax = 150
 cbar = plt.colorbar(img_hist, cax=cax1, orientation='horizontal', extend='both')
 # cbar.set_ticks([np.linspace(vmin, vmax, 8, endpoint=True, dtype='int')])
 cbar.set_ticks([-10, 10, 30, 50, 70, 90, 110, 130, 150]) 
-cbar.ax.tick_params(labelsize=fs)
-cbar.set_label('Soil Moisture Storage [mm]', rotation='horizontal', labelpad=lp)
+cbar.ax.tick_params(labelsize=ticksize)
+cbar.set_label('[mm] \n Soil Moisture Storage', rotation='horizontal', labelpad=lp)
 
 vmin = -120
 vmax = 120
 
 cbar = plt.colorbar(img_future, cax=cax2, orientation='horizontal', extend='both')
 cbar.set_ticks([np.linspace(vmin, vmax, 9, endpoint=True, dtype='int')])
-cbar.ax.tick_params(labelsize=fs)
-cbar.set_label('Change in Soil Moisture Storage [mm]', rotation='horizontal', labelpad=lp)
+cbar.ax.tick_params(labelsize=ticksize)
+cbar.set_label('[mm] \n Change in \n Soil Moisture Storage', rotation='horizontal', labelpad=lp)
 
 font = {'size' : fs}
 plt.rc('font', **font)
 
-f.text(0.43, 0.55, 'Lowland Regions', va='center', rotation='horizontal', size = 'x-large')
-f.text(0.43, 0.95, 'Mountain Ranges', va='center', rotation='horizontal', size = 'x-large')
+f.text(0.43, 0.55, 'Lowland Regions', va='center', rotation='horizontal', size = fs)
+f.text(0.43, 0.95, 'Mountain Ranges', va='center', rotation='horizontal', size = fs)
 
 ## save plot
 direc = '/raid/gergel/sm/plots/'
@@ -174,5 +176,5 @@ if not os.path.exists(direc):
 plotname = 'sm_map.tiff'
 savepath = os.path.join(direc, plotname)
 print ("saving figure to '%s'" % savepath)
-plt.savefig(savepath, format='tiff', dpi=dpi)
+plt.savefig(savepath, format='tiff', bbox_inches='tight', dpi=dpi)
 

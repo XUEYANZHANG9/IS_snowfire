@@ -27,10 +27,11 @@ v = (u.sel(month=6) + u.sel(month=7) + u.sel(month=8) + u.sel(month=9)) / 4.0
 
 # PLOTTING 
 
-fs = 30 ## fontsize
+fs = 12 ## fontsize
+ts = 8
 nbins = 11
-lp = 10
-dpi = 600
+lp = 5
+dpi = 300
 
 model = "MIROC5"
 # scenarios = ["historical", "rcp45", "rcp45", "rcp45", "rcp85", "rcp85", "rcp85"]
@@ -38,13 +39,14 @@ scenarios = ["historical", "rcp85", "rcp85", "rcp85", "historical", "rcp85", "rc
 chunks = ["1970_1999", "2010_2039", "2040_2069", "2070_2099", "1970_1999", "2010_2039", "2040_2069", "2070_2099"]
 # chunks = ["1970_1999", "2010_2039", "2040_2069", "2070_2099"]
 direcs = ['hist', 'rcp85_2020s', 'rcp85_2050s', 'rcp85_2080s', 'hist', 'rcp85_2020s', 'rcp85_2050s', 'rcp85_2080s']
-titles = ['1980s', 'RCP 8.5 2020s', 'RCP 8.5 2050s', 'RCP 8.5 2080s']
+titles = ['1980s', 'RCP 8.5 \n 2020s', 'RCP 8.5 \n 2050s', 'RCP 8.5 \n 2080s']
 direc = '/raid/gergel/dfm'
 
 
 # ## MOUNTAIN RANGES #  
 
-f, axes = plt.subplots(nrows=2, ncols=4, figsize=(30,15)) 
+#f, axes = plt.subplots(nrows=2, ncols=4, figsize=(30,15)) 
+f, axes = plt.subplots(nrows=2, ncols=4, figsize=(6.8, 3.4)) 
 
 # mask domain
 mask_domain_mtns = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/mountains', ds.lat, ds.lon)
@@ -62,8 +64,8 @@ for i, caxes in enumerate(axes.ravel()):
     direc = '/raid/gergel/dfm/%s' % direcs[i] 
 
     # average over models 
-    txt_files = [b for b in os.listdir(direc)]
-    #txt_files = ['CNRM-CM5_%s_%s.nc' %(scenarios[i], chunks[i])]      
+    #txt_files = [b for b in os.listdir(direc)]
+    txt_files = ['CNRM-CM5_%s_%s.nc' %(scenarios[i], chunks[i])]      
 
     total = 0.0
     for ii, f in enumerate(txt_files):
@@ -126,16 +128,16 @@ for i, caxes in enumerate(axes.ravel()):
 	
     # add (a) and (b) labels for mountain ranges and lowland regions 
     if i == 0:
-        ax.set_ylabel('(a)', rotation='horizontal', labelpad=90)
+        ax.set_ylabel('(a)', size=fs, rotation='horizontal', labelpad=40)
     elif i == 4:
-        ax.set_ylabel('(b)', rotation='horizontal', labelpad=90)
+        ax.set_ylabel('(b)', size=fs, rotation='horizontal', labelpad=40)
 
 
-    font = {'size' : fs}
+    font = {'size' : ts}
     plt.rc('font', **font)
 
     if i < 4:
-	title_above = '%s \n ' % titles[i]  
+	title_above = '%s' % titles[i]  
     	ax.set_title(title_above, size=fs)
     
 # get rid of whitespace between subplots
@@ -164,6 +166,7 @@ if not os.path.exists(direc):
 plotname = 'fm100.tiff'
 savepath = os.path.join(direc, plotname)
 print ("saving figure to '%s'" % savepath)
+#f.set_size_inches(6.8, 3.4)
 plt.savefig(savepath, format='tiff', dpi=dpi, bbox_inches='tight')
 
 

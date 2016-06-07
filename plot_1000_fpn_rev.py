@@ -26,12 +26,13 @@ v = (u.sel(month=7) + u.sel(month=8) + u.sel(month=9)) / 3.0
 mask_domain_mtns = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/mountains', ds.lat, ds.lon)
 mask_domain_lowlands = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/lowlands', ds.lat, ds.lon)
 
-fs = 40 ## fontsize
+fs = 15 ## fontsize
 nbins = 11
 lp = 10
-dpi = 600
+dpi = 300
 
-f, axes = plt.subplots(nrows=1, ncols=2, figsize=(30,15))
+#f, axes = plt.subplots(nrows=1, ncols=2, figsize=(30,15))
+f, axes = plt.subplots(nrows=1, ncols=2, figsize=(6.8,3.4))
 
 direc = '/raid/gergel/dfm/%s' % 'rcp85_2080s'
 
@@ -96,17 +97,17 @@ plt.sca(ax)
 m = make_map(fs, label_parallels=True, label_meridians=True) 
 x,y = m(v.lon, v.lat)
 img = m.pcolormesh(x, y, v_dfm_mtns.to_masked_array(), cmap=cmap, vmin=vmin, vmax=vmax) 
-ax.set_title('Mountains \n ', size=fs)
+ax.set_title('Mountains', size=fs)
 
 # second subplot
 ax = axes[1]
 plt.sca(ax)
 m = make_map(fs, label_meridians=True) 
 img = m.pcolormesh(x, y, v_dfm_low.to_masked_array(), cmap=cmap, vmin=vmin, vmax=vmax) 
-ax.set_title('Lowlands \n ', size=fs)
+ax.set_title('Lowlands', size=fs)
 
 # get rid of whitespace between subplots
-plt.subplots_adjust(wspace=0.1, hspace=None, left=0.05, right=0.98, top=0.9, bottom=0.2)
+plt.subplots_adjust(wspace=0.1, hspace=None, left=0.05, right=0.98, top=0.9, bottom=0.21)
 
 # create axis for colorbar 
 cax = plt.axes([0.04, 0.1, 0.95, 0.05]) #[left,vertical, distance from left, height]
@@ -114,7 +115,7 @@ cax = plt.axes([0.04, 0.1, 0.95, 0.05]) #[left,vertical, distance from left, hei
 # colorbar and its properties 
 cbar = plt.colorbar(img, cax=cax, orientation='horizontal')
 cbar.set_ticks([np.linspace(vmin, vmax, 11, endpoint=True, dtype='int')])
-cbar.set_label('Model Agreement in 100-hr DFM (number positive minus negative)', rotation='horizontal', labelpad=lp)
+cbar.set_label('Model Agreement in 100-hr DFM \n (number positive minus negative)', rotation='horizontal', labelpad=lp)
 
 ## save plot
 direc = '/raid/gergel/dfm/plots/fm1000'
