@@ -3,7 +3,7 @@
 #$ -cwd
 #$ -j y
 #$ -S /bin/bash
-#$ -q default.q
+#$ -q interactive.q
 #$ -N dfm_100
 #$ -m abe
 #$ -M gergel@uw.edu 

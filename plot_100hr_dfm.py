@@ -27,7 +27,7 @@ v = (u.sel(month=6) + u.sel(month=7) + u.sel(month=8) + u.sel(month=9)) / 4.0
 
 # PLOTTING 
 
-fs = 12 ## fontsize
+fs = 10 ## fontsize
 ts = 8
 nbins = 11
 lp = 5
@@ -64,8 +64,8 @@ for i, caxes in enumerate(axes.ravel()):
     direc = '/raid/gergel/dfm/%s' % direcs[i] 
 
     # average over models 
-    #txt_files = [b for b in os.listdir(direc)]
-    txt_files = ['CNRM-CM5_%s_%s.nc' %(scenarios[i], chunks[i])]      
+    txt_files = [b for b in os.listdir(direc)]
+    #txt_files = ['CNRM-CM5_%s_%s.nc' %(scenarios[i], chunks[i])]      
 
     total = 0.0
     for ii, f in enumerate(txt_files):

@@ -26,9 +26,9 @@ v = (u.sel(month=7) + u.sel(month=8) + u.sel(month=9)) / 3.0
 mask_domain_mtns = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/mountains', ds.lat, ds.lon)
 mask_domain_lowlands = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/lowlands', ds.lat, ds.lon)
 
-fs = 15 ## fontsize
+fs = 12 ## fontsize
 nbins = 11
-lp = 10
+lp = 5
 dpi = 300
 
 #f, axes = plt.subplots(nrows=1, ncols=2, figsize=(30,15))

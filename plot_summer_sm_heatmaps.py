@@ -12,10 +12,10 @@ import xarray as xray
 from dfm_functions import make_mask 
 
 
-fs = 30 ## fontsize
+fs = 10 ## fontsize
 nbins = 11
 lp = 10
-dpi = 600
+dpi = 300
 
 scenarios = ["rcp45", "rcp85"]
 clim_periods = ["2020s", "2050s", "2080s"] 
@@ -120,8 +120,8 @@ def make_df_for_heatmap(modelss,basinss,scenario,clim_period):
     return(df_pivot, df_pivot_pvals)
 
 lp = 15 
-lt = 30
-rt = 25
+lt = 6.8
+rt = 6
 fig = plt.figure(figsize=(lt,rt))
 
 rc={'font.size': fs, 'axes.labelsize': fs, 'xtick.major.size': fs, 'xtick.minor.size': fs, 'legend.fontsize': fs, 
@@ -136,7 +136,7 @@ sns.set_context(rc=rc)
 
 
 # create colorbar axes
-cbar_ax = plt.axes([0.15, 0.1, 0.8, 0.05])  #[left,vertical, distance from left, height] 
+cbar_ax = plt.axes([0.15, 0.05, 0.8, 0.05])  #[left,vertical, distance from left, height] 
 # cbar_ax.tick_params(labelsize=25, size=25)
 
 
@@ -168,11 +168,11 @@ for scenario in scenarios:
 		# sns.heatmap(df_pivot, mask=pvals_df < 0.05, cbar=False,cmap='gray', annot=False)
 
 		if clim_period == "2020s" and scenario == "rcp45": 
-			ax.set_title("2020s \n")
+			ax.set_title("2020s")
 		elif clim_period == "2050s" and scenario == "rcp45": 
-			ax.set_title("2050s \n") 
+			ax.set_title("2050s") 
 		elif clim_period == "2080s" and scenario == "rcp45":
-			ax.set_title("2080s \n ") 
+			ax.set_title("2080s") 
 
 		# ax = denote_stat_sig(pvals, diff_means, ax) 
 		'''
@@ -198,15 +198,15 @@ cbar.set_label('%% Change in Soil Moisture', rotation='horizontal', labelpad=lp)
 # img.set(xlabel='GCMs', ylabel='Regions')
 
 # get rid of whitespace between subplots
-plt.subplots_adjust(wspace=0.1, hspace=None, left=0.15, right=0.98, top=0.9, bottom=0.35)
+plt.subplots_adjust(wspace=0.1, hspace=None, left=0.15, right=0.98, top=0.9, bottom=0.45)
 
-fig.text(0.075, 0.62, 'RCP 8.5', va='center', rotation='horizontal', size = 'x-large')
-fig.text(0.075, 0.93, 'RCP 4.5', va='center', rotation='horizontal', size = 'x-large')
+fig.text(0.075, 0.62, 'RCP 8.5', va='center', rotation='horizontal', size = fs)
+fig.text(0.075, 0.93, 'RCP 4.5', va='center', rotation='horizontal', size = fs)
 
 ## save plot
 direc = '/raid/gergel/sm/plots'
 plotname = 'heatmap_sm.tiff' 
 savepath = os.path.join(direc, plotname)
 print ("saving figure to '%s'" % savepath)
-plt.savefig(savepath, format='tiff', dpi=dpi)
+plt.savefig(savepath, bbox_inches='tight', format='tiff', dpi=dpi)
 
