@@ -152,12 +152,18 @@ cax1 = plt.axes([0.04, 0.1, 0.22, 0.05]) #[left,vertical, distance from left, he
 cbar = plt.colorbar(img_h, cax=cax1, orientation='horizontal')
 cbar.set_ticks([np.linspace(0, 28, 8, endpoint=True, dtype='int')])
 cbar.set_label('% DFM', rotation='horizontal', labelpad=lp)
+label_text = cbar.ax.xaxis.label
+fontprop = matplotlib.font_manager.FontProperties(size=12)
+label_text.set_font_properties(fontprop)
 
 cax2 = plt.axes([0.47, 0.1, 0.35, 0.05]) #[left,vertical, distance from left, height]
 cbar = plt.colorbar(img_f, cax=cax2, orientation='horizontal', extend='both')
 cbar.set_ticks([np.linspace(vmin, vmax, 11, endpoint=True, dtype='int')])
 # cbar.set_label('$\Delta$ % Difference DFM', rotation='horizontal', labelpad=lp) 
 cbar.set_label('% Difference in DFM', rotation='horizontal', labelpad=lp) 
+label_text = cbar.ax.xaxis.label
+fontprop = matplotlib.font_manager.FontProperties(size=12)
+label_text.set_font_properties(fontprop)
 
 ## save plot
 direc = '/raid/gergel/dfm/plots/fm100'
