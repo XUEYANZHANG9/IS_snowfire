@@ -16,7 +16,7 @@ from scipy.stats import nanmean
 
 ################### set fontsize ###############
 fs = 20 ## font size
-ls = 15 ## legend size
+ls = 20 ## legend size
 ################################################
 
 ## function to get elevation for snotel site 
@@ -245,7 +245,8 @@ for basin in basins:
 		ax.set_xticks([0,75,150,225])
 	else:
 		ax.set_xticks([0,2000,4000])  
-	ax.xaxis.set_tick_params(labelsize=fs)	
+	ax.xaxis.set_tick_params(labelsize=fs)
+        ax.yaxis.set_tick_params(labelsize=fs)	
 
 	## set y ticks #######
 	if (basin != "cascades"): 
@@ -253,21 +254,21 @@ for basin in basins:
 		ax.yaxis.set_tick_params(labelsize=fs)		
 
 	if (basin == "california"):
-		ax.set_title('Sierra Nevada')
+		ax.set_title('Sierra Nevada', size=fs)
 	elif (basin == "cascades"):
-		ax.set_title('Cascades')
+		ax.set_title('Cascades', size=fs)
 	elif (basin == "northernrockies"):
-		ax.set_title('Northern Rockies')
+		ax.set_title('Northern Rockies', size=fs)
 	elif (basin == "southernrockies"):
-		ax.set_title('Southern Rockies')
+		ax.set_title('Southern Rockies', size=fs)
 	else:
-		ax.set_title('White Mountains') 
+		ax.set_title('White Mountains', size=fs) 
 	#plt.legend()
 	num += 1 
 # fig.legend(handles=[red_patch,green_patch],loc=2) 
 plot_direc = '/raid9/gergel/agg_snowpack/snotel_vic/plots'
-plotname = 'binned_allbasins_april1swe.eps' 
+plotname = 'binned_allbasins_april1swe.png' 
 savepath = os.path.join(plot_direc,plotname)
 print("saving figure to '%s'" %savepath)
-plt.savefig(savepath,format='eps', dpi=600) 
+plt.savefig(savepath,format='png', dpi=500) 
 
