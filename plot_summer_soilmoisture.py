@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from dfm_functions import make_map,make_mask, cmap_discretize 
 
 #fs = 40 ## fontsize
-fs = 15
+fs = 12
 ticksize = 10
 nbins = 11
 lp = 10
@@ -142,8 +142,8 @@ plt.subplots_adjust(wspace=0.1, hspace=None, left=0.05, right=0.98, top=0.9, bot
 cax1 = plt.axes([0.06, 0.1, 0.42, 0.05]) #[left,vertical, distance from left, height]
 cax2 = plt.axes([0.55, 0.1, 0.42, 0.05]) 
 
-cax1.tick_params(size=fs, labelsize=25)
-cax2.tick_params(size=fs, labelsize=25) 
+cax1.tick_params(size=fs, labelsize=15)
+cax2.tick_params(size=fs, labelsize=15) 
 
 vmin = -10
 vmax = 150
