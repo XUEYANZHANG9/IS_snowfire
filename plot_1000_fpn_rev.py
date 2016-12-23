@@ -115,7 +115,7 @@ cax = plt.axes([0.04, 0.1, 0.95, 0.05]) #[left,vertical, distance from left, hei
 # colorbar and its properties 
 cbar = plt.colorbar(img, cax=cax, orientation='horizontal')
 cbar.set_ticks([np.linspace(vmin, vmax, 11, endpoint=True, dtype='int')])
-cbar.set_label('Model Agreement in 100-hr DFM \n (number positive minus negative)', rotation='horizontal', labelpad=lp)
+cbar.set_label('Model Agreement in 1000-hr DFM \n (number positive minus negative)', rotation='horizontal', labelpad=lp)
 
 ## save plot
 direc = '/raid/gergel/dfm/plots/fm1000'
