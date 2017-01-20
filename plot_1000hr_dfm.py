@@ -21,7 +21,7 @@ scenario = "historical"
 chunk = "1970_1999"
 filename = '%s_%s_%s.nc' % (model, scenario, chunk)
 ds = xray.open_dataset(os.path.join(direc,filename))
-u = ds['fm100'].groupby('time.month').mean('time')
+u = ds['fm1000'].groupby('time.month').mean('time')
 # average of JAS months 
 v = (u.sel(month=6) + u.sel(month=7) + u.sel(month=8) + u.sel(month=9)) / 4.0
 
@@ -46,7 +46,7 @@ direc = '/raid/gergel/dfm'
 # ## MOUNTAIN RANGES #  
 
 #f, axes = plt.subplots(nrows=2, ncols=4, figsize=(30,15)) 
-f, axes = plt.subplots(nrows=2, ncols=4, figsize=(6.8, 3.4)) 
+f, axes = plt.subplots(nrows=2, ncols=4, figsize=(6.8, 3.4))
 
 # mask domain
 mask_domain_mtns = make_mask('/raid9/gergel/agg_snowpack/gridcells_is_paper/mountains', ds.lat, ds.lon)
@@ -72,7 +72,7 @@ for i, caxes in enumerate(axes.ravel()):
 	# load data
 	print(os.path.join(direc, f)) 
     	ds = xray.open_dataset(os.path.join(direc,f)) 
-    	u = ds['fm100'].groupby('time.month').mean('time')
+    	u = ds['fm1000'].groupby('time.month').mean('time')
     
     	# average of JAS months 
     	v = (u.sel(month=6) + u.sel(month=7) + u.sel(month=8) + u.sel(month=9)) / 4.0
@@ -125,14 +125,13 @@ for i, caxes in enumerate(axes.ravel()):
 
         img_f = m.pcolormesh(x, y, v_diff.to_masked_array(), vmin=vmin, vmax=vmax, cmap=cmap) 
 	plt.setp(ax.get_yticklabels(), visible=False)
-	
+
     # add (a) and (b) labels for mountain ranges and lowland regions 
     if i == 0:
         ax.set_ylabel('(a)', size=fs, rotation='horizontal', labelpad=40)
     elif i == 4:
         ax.set_ylabel('(b)', size=fs, rotation='horizontal', labelpad=40)
-
-
+	
     font = {'size' : ts}
     plt.rc('font', **font)
 
@@ -149,7 +148,7 @@ plt.subplots_adjust(wspace=0.1, hspace=None, left=0.05, right=0.98, top=0.9, bot
 
 # create colorbars 
 cax1 = plt.axes([0.04, 0.1, 0.22, 0.05]) #[left,vertical, distance from left, height]
-cbar = plt.colorbar(img_h, cax=cax1, orientation='horizontal')
+cbar = plt.colorbar(img_h, cax=cax1, orientation='horizontal', extend='max')
 cbar.set_ticks([np.linspace(0, 28, 8, endpoint=True, dtype='int')])
 cbar.set_label('% DFM', rotation='horizontal', labelpad=lp)
 label_text = cbar.ax.xaxis.label
@@ -166,13 +165,12 @@ fontprop = matplotlib.font_manager.FontProperties(size=12)
 label_text.set_font_properties(fontprop)
 
 ## save plot
-direc = '/raid/gergel/dfm/plots/fm100'
+direc = '/raid/gergel/dfm/plots/fm1000'
 if not os.path.exists(direc):
     os.makedirs(direc) ## if directory doesn't exist, create it
-plotname = 'fm100.pdf'
+plotname = 'fm1000.pdf'
 savepath = os.path.join(direc, plotname)
 print ("saving figure to '%s'" % savepath)
-#f.set_size_inches(6.8, 3.4)
-plt.savefig(savepath, format='pdf', dpi=dpi, bbox_inches='tight')
+plt.savefig(savepath, bbox_inches='tight', format='pdf', dpi=dpi)
 
 

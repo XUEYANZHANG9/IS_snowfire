@@ -14,7 +14,7 @@ fs = 12
 ticksize = 10
 nbins = 11
 lp = 10
-dpi = 300
+dpi = 500
 
 models = ['CNRM-CM5','NorESM1-M','IPSL-CM5A-MR','CanESM2','CCSM4','HadGEM2-CC365',
                    'HadGEM2-ES365','MIROC5','bcc-csm1-1-m','CSIRO-Mk3-6-0']
@@ -173,8 +173,8 @@ direc = '/raid/gergel/sm/plots/'
 if not os.path.exists(direc):
     os.makedirs(direc) ## if directory doesn't exist, create it
 #plotname = 'sm_map' 
-plotname = 'sm_map.tiff'
+plotname = 'sm_map.pdf'
 savepath = os.path.join(direc, plotname)
 print ("saving figure to '%s'" % savepath)
-plt.savefig(savepath, format='tiff', bbox_inches='tight', dpi=dpi)
+plt.savefig(savepath, format='pdf', bbox_inches='tight', dpi=dpi)
 
